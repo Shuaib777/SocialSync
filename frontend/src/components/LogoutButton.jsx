@@ -13,7 +13,7 @@ const LogoutButton = () => {
   const toast = useToast();
   const handleLogout = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/users/login`, {
+      const res = await fetch(`${API_URL}/api/users/logout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
