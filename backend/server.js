@@ -11,7 +11,12 @@ dotenv.config();
 connectDB();
 const app = express();
 
-app.use(cors({ credentials: true }));
+app.use(
+  cors({
+    origin: "https://socialsync-ep5b.onrender.com",
+    credentials: true,
+  })
+);
 
 const PORT = process.env.PORT || 3000;
 
