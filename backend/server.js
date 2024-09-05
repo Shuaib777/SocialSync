@@ -11,7 +11,7 @@ dotenv.config();
 connectDB();
 const app = express();
 
-app.use(cors());
+app.use(cors({ credentials: true }));
 
 const PORT = process.env.PORT || 3000;
 
