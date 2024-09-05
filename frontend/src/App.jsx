@@ -32,8 +32,14 @@ const App = () => {
           element={user ? <ProfilePage /> : <Navigate to="/auth" />}
         />
 
-        <Route path="/:username" element={<UserPage />} />
-        <Route path="/:username/post/:pid" element={<PostPage />} />
+        <Route
+          path="/:username"
+          element={user ? <UserPage /> : <Navigate to="/auth" />}
+        />
+        <Route
+          path="/:username/post/:pid"
+          element={user ? <PostPage /> : <Navigate to="/auth" />}
+        />
       </Routes>
 
       {user ? <LogoutButton /> : <LoginButton />}
