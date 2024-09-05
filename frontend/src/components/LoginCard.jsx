@@ -37,7 +37,7 @@ const LoginCard = ({ setIsSignup }) => {
 
   const handleLogin = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/users/logout`, {
+      const res = await fetch(`${API_URL}/api/users/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -4,11 +4,18 @@ import connectDB from "./database/connectDB.js";
 import cookieParser from "cookie-parser";
 import userRouter from "./routes/userRoutes.js";
 import postRouter from "./routes/postRoutes.js";
+import cors from "cors";
 
 dotenv.config();
 
 connectDB();
 const app = express();
+
+app.use(
+  cors({
+    origin: "social-sync-phi.vercel.app",
+  })
+);
 
 const PORT = process.env.PORT || 3000;
 
