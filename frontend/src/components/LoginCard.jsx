@@ -20,6 +20,13 @@ import { useSetRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
 
 const LoginCard = ({ setIsSignup }) => {
+  const API_URL =
+    process.env.NODE_ENV === "production"
+      ? "https://socialsync-backend.onrender.com"
+      : "";
+
+  console.log(API_URL);
+
   const [showPassword, setShowPassword] = useState(false);
   const toast = useToast();
   const [inputs, setInputs] = useState({
@@ -30,7 +37,7 @@ const LoginCard = ({ setIsSignup }) => {
 
   const handleLogin = async () => {
     try {
-      const res = await fetch("/api/users/login", {
+      const res = await fetch(`${API_URL}/api/users/logout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

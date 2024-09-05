@@ -4,11 +4,16 @@ import { useSetRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
 
 const LogoutButton = () => {
+  const API_URL =
+    process.env.NODE_ENV === "production"
+      ? "https://socialsync-backend.onrender.com"
+      : "";
+
   const setUser = useSetRecoilState(userAtom);
   const toast = useToast();
   const handleLogout = async () => {
     try {
-      const res = await fetch("/api/users/logout", {
+      const res = await fetch(`${API_URL}/api/users/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
