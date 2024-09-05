@@ -11,11 +11,7 @@ dotenv.config();
 connectDB();
 const app = express();
 
-app.use(
-  cors({
-    origin: "social-sync-phi.vercel.app",
-  })
-);
+app.use(cors());
 
 const PORT = process.env.PORT || 3000;
 
