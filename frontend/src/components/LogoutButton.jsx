@@ -2,13 +2,9 @@ import { Button, useToast } from "@chakra-ui/react";
 import React from "react";
 import { useSetRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
+import API_URL from "../config/apiConfig.js";
 
 const LogoutButton = () => {
-  const API_URL =
-    process.env.NODE_ENV === "production"
-      ? "https://socialsync-backend.onrender.com"
-      : "";
-
   const setUser = useSetRecoilState(userAtom);
   const toast = useToast();
   const handleLogout = async () => {

@@ -18,15 +18,9 @@ import { useState } from "react";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { useSetRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
+import API_URL from "../config/apiConfig.js";
 
 const LoginCard = ({ setIsSignup }) => {
-  const API_URL =
-    process.env.NODE_ENV === "production"
-      ? "https://socialsync-backend.onrender.com"
-      : "";
-
-  console.log(API_URL);
-
   const [showPassword, setShowPassword] = useState(false);
   const toast = useToast();
   const [inputs, setInputs] = useState({
