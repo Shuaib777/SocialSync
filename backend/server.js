@@ -22,3 +22,5 @@ app.use("/api/posts/", postRouter);
 app.listen(PORT, () => {
   console.log(`server running at localhost ${PORT}`);
 });
+
+export default app;
