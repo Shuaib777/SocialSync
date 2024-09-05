@@ -9,7 +9,6 @@ export default defineConfig({
       "/api": {
         target: "https://socialsync-backend.onrender.com",
         changeOrigin: true,
-        secure: false,
       },
     },
   },
