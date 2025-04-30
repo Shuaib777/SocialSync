@@ -1,6 +1,7 @@
 import User from "../model/userModel.js";
 import bcrypt from "bcryptjs";
 import generateToken from "../util/helpers.js";
+import { v2 as cloudinary } from "cloudinary";
 
 export const getUserProfile = async (req, res) => {
   try {
@@ -142,9 +143,11 @@ export const followUnfollowUser = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const { email, password, name, profilePic, bio } = req.body;
+    const { email, password, name, bio } = req.body;
+    const file = req.file;
 
     const update = {};
+    const user = await User.findById(req.user._id);
 
     if (password) {
       const salt = await bcrypt.genSalt(10);
@@ -154,19 +157,46 @@ export const updateUser = async (req, res) => {
     if (email) update.email = email;
     if (name) update.name = name;
     if (bio) update.bio = bio;
-    if (profilePic) update.profilePic = profilePic;
+    if (file) {
+      if (user.profilePic) {
+        const parts = user.profilePic.split("/");
+        const fileNameWithExtension = parts.pop();
+        const folder = parts.pop();
+        const publicId = `${folder}/${fileNameWithExtension.split(".")[0]}`;
 
-    const user = await User.findByIdAndUpdate(req.user._id, update, {
+        await cloudinary.uploader.destroy(publicId);
+      }
+      const uploadedImage = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            resource_type: "image",
+            folder: `${req.user._id}_profilePic`,
+          },
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          }
+        );
+        uploadStream.end(file.buffer);
+      });
+
+      update.profilePic = uploadedImage.secure_url;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(req.user._id, update, {
       new: true,
     });
 
     res.status(200).json({
-      _id: user._id,
-      email: user.email,
-      name: user.name,
-      username: user.username,
-      bio: user.bio,
-      profilePic: user.profilePic,
+      _id: updatedUser._id,
+      email: updatedUser.email,
+      name: updatedUser.name,
+      username: updatedUser.username,
+      bio: updatedUser.bio,
+      profilePic: updatedUser.profilePic,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
