@@ -9,7 +9,10 @@ export const getUserProfile = async (req, res) => {
     const user = await User.findOne({ username });
 
     if (!user) return res.status(400).json({ error: "User not found" });
-    res.status(200).json(user);
+
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    res.status(200).json(userResponse);
   } catch (error) {
     res.status(500).json({ error: error.message });
     console.log("error in getting users");
@@ -38,16 +41,14 @@ export const signupUser = async (req, res) => {
     await newUser.save();
 
     if (newUser) {
-      generateToken(newUser.id, res);
+      generateToken(newUser._id, res);
 
-      res.status(201).json({
-        _id: newUser.id,
-        email: newUser.email,
-        username: newUser.username,
-        name: newUser.name,
-        bio: newUser.bio,
-        profilePic: newUser.profilePic,
-      });
+      const userResponse = newUser.toObject();
+      delete userResponse.password;
+      delete userResponse.createdAt;
+      delete userResponse.updatedAt;
+
+      res.status(201).json(userResponse);
     } else {
       res.status(400).json({ error: "Invalid data" });
     }
@@ -70,16 +71,14 @@ export const loginUser = async (req, res) => {
     if (!user || !isPasswordCorrect)
       return res.status(400).json({ error: "Invalid credentials" });
 
-    generateToken(user.id, res);
+    generateToken(user._id, res);
 
-    res.status(200).json({
-      _id: user.id,
-      name: user.name,
-      email: user.email,
-      username: user.username,
-      bio: user.bio,
-      profilePic: user.profilePic,
-    });
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    delete userResponse.createdAt;
+    delete userResponse.updatedAt;
+
+    res.status(200).json(userResponse);
   } catch (error) {
     res.status(500).json({ error: error.message });
     console.log("error in loginUser");
@@ -143,6 +142,8 @@ export const followUnfollowUser = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
+    if (!req.user?._id) return res.status(401).json({ error: "Unauthorized" });
+
     const { email, password, name, bio } = req.body;
     const file = req.file;
 
@@ -190,14 +191,11 @@ export const updateUser = async (req, res) => {
       new: true,
     });
 
-    res.status(200).json({
-      _id: updatedUser._id,
-      email: updatedUser.email,
-      name: updatedUser.name,
-      username: updatedUser.username,
-      bio: updatedUser.bio,
-      profilePic: updatedUser.profilePic,
-    });
+    const userResponse = updatedUser.toObject();
+    delete userResponse.password;
+    delete userResponse.createdAt;
+    delete userResponse.updatedAt;
+    res.status(200).json(userResponse);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
