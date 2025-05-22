@@ -4,10 +4,12 @@ import UserPost from "../components/UserPost";
 import { useParams } from "react-router-dom";
 import API_URL from "../config/apiConfig.js";
 import useCustomToast from "../hooks/useCustomToast";
+import { Center, Flex, Spinner } from "@chakra-ui/react";
 
 const UserPage = () => {
   const { username } = useParams();
   const [profileUser, setProfileUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const showToast = useCustomToast();
 
   useEffect(() => {
@@ -23,14 +25,25 @@ const UserPage = () => {
 
         setProfileUser(data);
       } catch (error) {
-        showToast("Error", error.error, "error");
+        showToast("Error", "User not found", "error");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     getUser();
   }, [username, showToast]);
 
-  if (!profileUser) return null;
+  if (isLoading)
+    return (
+      <Flex alignItems={"center"} justifyContent={"center"} w={"full"}>
+        <Spinner size={"xl"} />
+      </Flex>
+    );
+
+  if (!profileUser) {
+    return <h1>User not found</h1>;
+  }
 
   return (
     <>

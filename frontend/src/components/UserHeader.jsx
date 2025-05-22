@@ -89,7 +89,7 @@ const UserHeader = ({ profileUser, setProfileUser }) => {
               fontSize={"xs"}
               bg={"gray.dark"}
               color={"gray.light"}
-              p={2}
+              p={1}
               borderRadius={"full"}
             >
               threads.net

@@ -3,9 +3,9 @@ import User from "../model/userModel.js";
 
 const protectRoute = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    const token = req.cookies.postToken;
 
-    if (!token) return res.status(401).json({ message: "Unauthorized" });
+    if (!token) return res.status(401).json({ error: "Unauthorized" });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
@@ -14,7 +14,7 @@ const protectRoute = async (req, res, next) => {
 
     next();
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: error.message });
     console.log("error in protected Route");
   }
 };

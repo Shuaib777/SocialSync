@@ -1,9 +1,12 @@
 import Post from "../model/postModel.js";
 import User from "../model/userModel.js";
+import { v2 as cloudinary } from "cloudinary";
 
 export const createPost = async (req, res) => {
   try {
-    const { text, img } = req.body;
+    const { text } = req.body;
+    const img = req.file;
+    let imgUrl = null;
 
     if (!text) {
       return res.status(400).json({ error: "Text fields are required" });
@@ -16,11 +19,31 @@ export const createPost = async (req, res) => {
       });
     }
 
-    const post = await Post.create({ postedBy: req.user._id, text, img });
+    if (img) {
+      const uploadedImage = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            resource_type: "image",
+            folder: `${req.user._id}_post`,
+          },
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          }
+        );
+        uploadStream.end(img.buffer);
+      });
+
+      imgUrl = uploadedImage.secure_url;
+    }
+
+    const post = await Post.create({ postedBy: req.user._id, text, imgUrl });
 
     res.status(201).json({
       message: "Post created successfully",
-      post,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

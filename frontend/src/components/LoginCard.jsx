@@ -18,46 +18,30 @@ import { useState } from "react";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { useSetRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
-import API_URL from "../config/apiConfig.js";
+import useApi from "../hooks/useApi";
+import useCustomToast from "../hooks/useCustomToast";
+import { useNavigate } from "react-router-dom";
 
 const LoginCard = ({ setIsSignup }) => {
   const [showPassword, setShowPassword] = useState(false);
-  const toast = useToast();
   const [inputs, setInputs] = useState({
     username: "",
     password: "",
   });
   const setUser = useSetRecoilState(userAtom);
+  const navigate = useNavigate();
+  const showToast = useCustomToast();
+  const request = useApi();
 
   const handleLogin = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/users/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(inputs),
-        credentials: "include",
-      });
-
-      const data = await res.json();
-
-      if (data.error) {
-        toast({
-          title: "Login Error",
-          description: data.error,
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-
-        return;
-      }
-
+      const data = await request("/users/login", "POST", inputs, false, true);
+      if (!data) return;
       localStorage.setItem("user-posts", JSON.stringify(data));
       setUser(data);
+      navigate("/");
     } catch (err) {
-      console.log(err);
+      showToast("Error", "User not logged in", "error");
     }
   };
 

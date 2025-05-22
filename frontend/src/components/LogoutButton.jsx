@@ -1,39 +1,22 @@
 import { Button, useToast } from "@chakra-ui/react";
-import React from "react";
 import { useSetRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
-import API_URL from "../config/apiConfig.js";
+import useApi from "../hooks/useApi";
+import useCustomToast from "../hooks/useCustomToast";
 
 const LogoutButton = () => {
   const setUser = useSetRecoilState(userAtom);
-  const toast = useToast();
+  const showToast = useCustomToast();
+  const request = useApi();
+
   const handleLogout = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/users/logout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      const data = await res.json();
-
-      if (data.error) {
-        toast({
-          title: "Logout Error",
-          description: data.error,
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-        return;
-      }
-
+      const data = await request("/users/logout", "POST", null, false, true);
+      if (!data) return;
       setUser(null);
       localStorage.removeItem("user-posts");
     } catch (err) {
-      console.log(err);
+      showToast("Error", "User not logged out", "error");
     }
   };
 

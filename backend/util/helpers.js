@@ -5,7 +5,7 @@ const generateToken = (userId, res) => {
     expiresIn: "15d",
   });
 
-  res.cookie("token", token, {
+  res.cookie("postToken", token, {
     httpOnly: true,
     maxAge: 15 * 24 * 60 * 60 * 1000,
     // secure: process.env.NODE_ENV === "production", // Only use secure cookies in production
