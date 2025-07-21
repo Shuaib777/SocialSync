@@ -22,6 +22,7 @@ import React, { useRef, useState } from "react";
 import usePreviewImage from "../hooks/usePreviewImage";
 import useApi from "../hooks/useApi";
 import useCustomToast from "../hooks/useCustomToast";
+import imageCompression from "browser-image-compression";
 
 const CreatePost = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -44,8 +45,21 @@ const CreatePost = () => {
 
       const formData = new FormData();
       formData.append("text", textValue);
-      if (imageRef.current?.files[0])
-        formData.append("postImage", imageRef.current.files[0]);
+
+      if (imageRef.current?.files[0]) {
+        const compressedFile = await imageCompression(
+          imageRef.current.files[0],
+          {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1080,
+            useWebWorker: true,
+          }
+        );
+        formData.append("postImage", compressedFile);
+      }
+
+      // if (imageRef.current?.files[0])
+      //   formData.append("postImage", imageRef.current.files[0]);
 
       const data = await request("/posts/createPost", "POST", formData, true);
       if (!data) return;

@@ -9,11 +9,13 @@ import useApi from "../hooks/useApi";
 import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import PostActions from "./PostActions";
+import { Skeleton } from "@chakra-ui/react";
 
 const UserPost = ({ post, setPost }) => {
   if (!post) return;
   const user = post.postedBy;
   const navigate = useNavigate();
+  const [loaded, setLoaded] = useState(false);
 
   return (
     <Link to={`/${user.username}/post/${post?._id}`}>
@@ -91,13 +93,16 @@ const UserPost = ({ post, setPost }) => {
           <Text fontSize={"sm"}>{post.text}</Text>
 
           {post.img && (
-            <Box
-              borderRadius={6}
-              overflow={"hidden"}
-              border={"1px solid"}
-              borderColor={"gray.light"}
-            >
-              <Image src={post.img} w={"full"} />
+            <Box position="relative" overflow="hidden" borderRadius={6}>
+              <Skeleton isLoaded={loaded}>
+                <Image
+                  src={post.img}
+                  alt="Post Image"
+                  loading="lazy"
+                  w="full"
+                  onLoad={() => setLoaded(true)}
+                />
+              </Skeleton>
             </Box>
           )}
 

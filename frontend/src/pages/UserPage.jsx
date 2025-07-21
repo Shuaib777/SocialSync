@@ -54,6 +54,12 @@ const UserPage = () => {
     getUserPosts();
   }, [profileUser]);
 
+  const updatePostInState = (updatedPost) => {
+    setProfileUserPosts((prevPosts) =>
+      prevPosts.map((p) => (p._id === updatedPost._id ? updatedPost : p))
+    );
+  };
+
   if (isLoading)
     return (
       <Flex alignItems={"center"} justifyContent={"center"} w={"full"}>
@@ -81,7 +87,7 @@ const UserPage = () => {
               <h1>User Does Not have recent Posts</h1>
             ))}
           {profileUserPosts?.map((post) => (
-            <UserPost key={post._id} post={post} />
+            <UserPost key={post._id} post={post} setPost={updatePostInState} />
           ))}
         </>
       )}
