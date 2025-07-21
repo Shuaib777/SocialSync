@@ -28,6 +28,8 @@ const Comment = ({ reply, postId }) => {
     setLiked(data.liked);
   };
 
+  const handleReply = () => {};
+
   return (
     <>
       <Flex w={"full"} gap={4}>
@@ -57,6 +59,7 @@ const Comment = ({ reply, postId }) => {
             loading={loading}
             liked={liked}
             handleLikeUnlike={handleLikeUnlike}
+            handleReply={handleReply}
           />
           <Text>{likesLength} likes</Text>
         </VStack>

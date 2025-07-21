@@ -34,11 +34,6 @@ const CreatePost = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleTextChange = (e) => {
-    // const newValue = e.target.value;
-
-    // if (newValue.length <= CHARACTERS_LIMIT) {
-    //   setTextValue(newValue);
-    // }
     const newValue = e.target.value;
     setTextValue(newValue.slice(0, CHARACTERS_LIMIT));
   };
