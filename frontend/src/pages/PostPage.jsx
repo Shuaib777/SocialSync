@@ -15,10 +15,13 @@ import Actions from "../components/Actions";
 import Comment from "../components/Comment";
 import { useParams } from "react-router-dom";
 import useApi from "../hooks/useApi";
+import { useRecoilValue } from "recoil";
+import userAtom from "../atoms/userAtom";
+import PostActions from "../components/PostActions";
 
 const PostPage = ({ postImg = true, likes = 200 }) => {
   const { pid } = useParams();
-  const [liked, setLiked] = useState(false);
+  const { _id: currentUserId } = useRecoilValue(userAtom);
   const request = useApi();
   const [post, setPost] = useState({});
   const [loading, setLoading] = useState(true);
@@ -43,8 +46,6 @@ const PostPage = ({ postImg = true, likes = 200 }) => {
       </Flex>
     );
   }
-
-  // console.log(post);
 
   return (
     <VStack gap={4} alignItems={"start"} mb={12}>
@@ -81,22 +82,11 @@ const PostPage = ({ postImg = true, likes = 200 }) => {
         </Box>
       )}
 
-      <Actions liked={liked} setLiked={setLiked}></Actions>
-
-      <Flex gap={2} alignItems={"center"}>
-        <Text color={"gray.light"} fontSize="sm">
-          {post.replies.length} replies
-        </Text>
-        <Box w={0.5} h={0.5} borderRadius={"full"} bg={"gray.light"}></Box>
-        <Text color={"gray.light"} fontSize="sm">
-          {liked ? post.likes.length + 1 : post.likes.length} likes
-        </Text>
-      </Flex>
+      <PostActions post={post} />
 
       <Divider></Divider>
       <Flex w={"full"} alignItems={"center"} justifyContent={"space-between"}>
         <Flex gap={2} alignItems={"center"}>
-          {/* <Text fontSize={"2xl"}>👋</Text> */}
           <Text>Replies </Text>
         </Flex>
         {/* <Button>Sort Replies</Button> */}

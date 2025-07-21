@@ -1,7 +1,6 @@
 import { Flex } from "@chakra-ui/react";
-import React from "react";
 
-const Actions = ({ loading, liked, handleLikeUnlike }) => {
+const Actions = ({ liking, liked, handleLikeUnlike }) => {
   return (
     <Flex gap={3} my={2} cursor={"pointer"} onClick={(e) => e.preventDefault()}>
       <svg
@@ -13,7 +12,7 @@ const Actions = ({ loading, liked, handleLikeUnlike }) => {
         viewBox="0 0 24 22"
         width="20"
         onClick={() => {
-          if (loading) return;
+          if (liking) return;
           handleLikeUnlike();
         }}
       >

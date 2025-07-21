@@ -148,17 +148,24 @@ export const likeUnlikePost = async (req, res) => {
 
     if (!post) return res.status(404).json({ error: "Post not found" });
 
-    const isLiked = post.likes.includes(userId);
+    let isLiked = post.likes.includes(userId);
+    let likesLength = post.likes.length;
 
     if (isLiked) {
       await Post.findByIdAndUpdate(postId, { $pull: { likes: userId } });
+      isLiked = false;
+      likesLength--;
     } else {
       await Post.findByIdAndUpdate(postId, { $push: { likes: userId } });
+      isLiked = true;
+      likesLength++;
     }
 
-    return res
-      .status(200)
-      .json({ message: `Post ${isLiked ? "unliked" : "liked"} successfully` });
+    return res.status(200).json({
+      message: `Post ${isLiked ? "unliked" : "liked"} successfully`,
+      likesLength,
+      isLiked,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
     console.log("Error in likeUnlikePost");

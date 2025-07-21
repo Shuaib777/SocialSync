@@ -5,10 +5,13 @@ import { BsThreeDots } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Actions from "./Actions";
+import useApi from "../hooks/useApi";
+import { useRecoilValue } from "recoil";
+import userAtom from "../atoms/userAtom";
+import PostActions from "./PostActions";
 
 const UserPost = ({ post }) => {
   if (!post) return;
-  const [liked, setLiked] = useState(false);
   const user = post.postedBy;
   const navigate = useNavigate();
 
@@ -20,6 +23,7 @@ const UserPost = ({ post }) => {
             size="md"
             name={user.username}
             src={user.profilePic}
+            cursor={"pointer"}
             onClick={(e) => {
               e.preventDefault();
               navigate(`/${user.username}`);
@@ -97,19 +101,7 @@ const UserPost = ({ post }) => {
             </Box>
           )}
 
-          <Flex my={1}>
-            <Actions liked={liked} setLiked={setLiked} />
-          </Flex>
-
-          <Flex gap={2} alignItems={"center"}>
-            <Text color={"gray.light"} fontSize="sm">
-              {post.replies.length} replies
-            </Text>
-            <Box w={0.5} h={0.5} borderRadius={"full"} bg={"gray.light"}></Box>
-            <Text color={"gray.light"} fontSize="sm">
-              {post.likes.length} likes
-            </Text>
-          </Flex>
+          <PostActions post={post} />
         </Flex>
       </Flex>
     </Link>
