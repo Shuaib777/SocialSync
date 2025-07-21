@@ -14,7 +14,7 @@ const PostActions = ({ post, setPost }) => {
 
   const [likesLength, setLikesLength] = useState(post.likes.length);
   const [liked, setLiked] = useState(post.likes.includes(currentUserId));
-  const [repliesCount, setRepliesCount] = useState(post.replies.length); // ✅ track replies separately
+  const [repliesCount, setRepliesCount] = useState(post.replies.length);
 
   const handleLikeUnlike = async () => {
     setLiking(true);
@@ -33,7 +33,7 @@ const PostActions = ({ post, setPost }) => {
     setReplying(false);
     if (!data) return;
 
-    if (setPost) setPost(data.newPost);
+    setPost(data.newPost);
     setRepliesCount((prev) => prev + 1);
   };
 

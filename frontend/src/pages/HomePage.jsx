@@ -23,6 +23,12 @@ const HomePage = () => {
     fetchPosts();
   }, []);
 
+  const updatePostInState = (updatedPost) => {
+    setPosts((prevPosts) =>
+      prevPosts.map((p) => (p._id === updatedPost._id ? updatedPost : p))
+    );
+  };
+
   if (loading) {
     return (
       <Flex alignItems={"center"} justifyContent={"center"} w={"full"}>
@@ -37,7 +43,7 @@ const HomePage = () => {
         <h1>Follow Some Users to show them on your feed</h1>
       )}
       {posts?.map((post) => (
-        <UserPost key={post._id} post={post} />
+        <UserPost key={post._id} post={post} setPost={updatePostInState} />
       ))}
     </>
   );

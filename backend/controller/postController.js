@@ -130,6 +130,9 @@ export const updatePost = async (req, res) => {
 
     const updatedPost = await Post.findByIdAndUpdate(postId, update, {
       new: true,
+    }).populate({
+      path: "postedBy",
+      select: "-password",
     });
 
     res.status(200).json({ message: "Post updated successfully", updatedPost });
@@ -203,7 +206,10 @@ export const replyToPost = async (req, res) => {
         },
       },
       { new: true }
-    );
+    ).populate({
+      path: "postedBy",
+      select: "-password",
+    });
 
     res.status(200).json({ message: "Reply added successfully", newPost });
   } catch (err) {

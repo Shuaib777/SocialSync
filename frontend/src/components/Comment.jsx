@@ -47,7 +47,7 @@ const Comment = ({ reply, postId }) => {
             alignItems={"center"}
           >
             <Text fontSize={"sm"} fontWeight={"bold"}>
-              {reply.text}
+              {reply.username}
             </Text>
             <Flex gap={2} alignItems={"center"}>
               <Text color={"gray.light"}>2d</Text>

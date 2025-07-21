@@ -10,7 +10,7 @@ import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import PostActions from "./PostActions";
 
-const UserPost = ({ post }) => {
+const UserPost = ({ post, setPost }) => {
   if (!post) return;
   const user = post.postedBy;
   const navigate = useNavigate();
@@ -101,7 +101,7 @@ const UserPost = ({ post }) => {
             </Box>
           )}
 
-          <PostActions post={post} />
+          <PostActions post={post} setPost={setPost} />
         </Flex>
       </Flex>
     </Link>

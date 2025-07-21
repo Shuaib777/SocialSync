@@ -21,7 +21,6 @@ import PostActions from "../components/PostActions";
 
 const PostPage = ({ postImg = true, likes = 200 }) => {
   const { pid } = useParams();
-  const { _id: currentUserId } = useRecoilValue(userAtom);
   const request = useApi();
   const [post, setPost] = useState({});
   const [loading, setLoading] = useState(true);
