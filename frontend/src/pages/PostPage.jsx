@@ -37,7 +37,7 @@ const PostPage = ({ postImg = true, likes = 200 }) => {
       setLoading(false);
     };
     getPostDetails();
-  }, []);
+  }, [setPost]);
 
   if (loading) {
     return (
@@ -82,14 +82,13 @@ const PostPage = ({ postImg = true, likes = 200 }) => {
         </Box>
       )}
 
-      <PostActions post={post} />
+      <PostActions post={post} setPost={setPost} />
 
       <Divider></Divider>
       <Flex w={"full"} alignItems={"center"} justifyContent={"space-between"}>
         <Flex gap={2} alignItems={"center"}>
           <Text>Replies </Text>
         </Flex>
-        {/* <Button>Sort Replies</Button> */}
       </Flex>
       <Divider></Divider>
 

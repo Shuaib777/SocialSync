@@ -5,7 +5,7 @@ import userAtom from "../atoms/userAtom";
 import useApi from "../hooks/useApi";
 import Actions from "./Actions";
 
-const PostActions = ({ post }) => {
+const PostActions = ({ post, setPost }) => {
   const { _id: currentUserId } = useRecoilValue(userAtom);
   const request = useApi();
 
@@ -33,6 +33,7 @@ const PostActions = ({ post }) => {
     setReplying(false);
     if (!data) return;
 
+    if (setPost) setPost(data.newPost);
     setRepliesCount((prev) => prev + 1);
   };
 
