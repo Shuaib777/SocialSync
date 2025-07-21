@@ -4,25 +4,30 @@ import UserPost from "../components/UserPost";
 import { useParams } from "react-router-dom";
 import API_URL from "../config/apiConfig.js";
 import useCustomToast from "../hooks/useCustomToast";
-import { Center, Flex, Spinner } from "@chakra-ui/react";
+import { Flex, Spinner } from "@chakra-ui/react";
+import useApi from "../hooks/useApi.jsx";
+import { useRecoilState, useRecoilValue } from "recoil";
+import userAtom from "../atoms/userAtom.jsx";
 
 const UserPage = () => {
   const { username } = useParams();
   const [profileUser, setProfileUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const showToast = useCustomToast();
+  const request = useApi();
+  const [profileUserPosts, setProfileUserPosts] = useState([]);
+  const currentUser = useRecoilValue(userAtom);
+  const [isPostsLoading, setIsPostsLoading] = useState(true);
 
   useEffect(() => {
     const getUser = async () => {
+      setIsLoading(true);
+      setProfileUser(null);
+      setProfileUserPosts([]);
+
       try {
-        const res = await fetch(`${API_URL}/api/users/profile/${username}`);
-        const data = await res.json();
-
-        if (data.error) {
-          showToast("Error", data.error, "error");
-          return;
-        }
-
+        const data = await request(`/users/profile/${username}`);
+        if (!data) return;
         setProfileUser(data);
       } catch (error) {
         showToast("Error", "User not found", "error");
@@ -32,7 +37,22 @@ const UserPage = () => {
     };
 
     getUser();
-  }, [username, showToast]);
+  }, [username]);
+
+  useEffect(() => {
+    const getUserPosts = async () => {
+      if (!profileUser) return;
+
+      setIsPostsLoading(true);
+      const postsData = await request(`/posts/getUserPosts/${profileUser._id}`);
+      if (postsData) {
+        setProfileUserPosts(postsData);
+      }
+      setIsPostsLoading(false);
+    };
+
+    getUserPosts();
+  }, [profileUser]);
 
   if (isLoading)
     return (
@@ -48,37 +68,23 @@ const UserPage = () => {
   return (
     <>
       <UserHeader profileUser={profileUser} setProfileUser={setProfileUser} />
-      <UserPost
-        userName={"Mark Zuckerberg"}
-        userImage={"/user1.png"}
-        postImg={"/post1.png"}
-        postTitle={"Let's talk about threads"}
-        likes={89}
-        replies={76}
-      />
-      <UserPost
-        userName={"Rollin "}
-        userImage={"/user2.jpg"}
-        postImg={"/post2.png"}
-        postTitle={"Let's talk."}
-        likes={89}
-        replies={76}
-      />
-      <UserPost
-        userName={"Jeff"}
-        userImage={"/user3.jpg"}
-        postImg={"/post3.png"}
-        postTitle={"What about threads"}
-        likes={89}
-        replies={76}
-      />
-      <UserPost
-        userName={"Andy"}
-        userImage={"/user4.jpg"}
-        postTitle={"My thread"}
-        likes={89}
-        replies={76}
-      />
+      {isPostsLoading ? (
+        <Flex alignItems={"center"} justifyContent={"center"} w={"full"}>
+          <Spinner size={"xl"} />
+        </Flex>
+      ) : (
+        <>
+          {profileUserPosts.length === 0 &&
+            (currentUser._id === profileUser._id ? (
+              <h1>Post Something to see your posts here</h1>
+            ) : (
+              <h1>User Does Not have recent Posts</h1>
+            ))}
+          {profileUserPosts?.map((post) => (
+            <UserPost key={post._id} post={post} />
+          ))}
+        </>
+      )}
     </>
   );
 };

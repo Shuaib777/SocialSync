@@ -1,20 +1,42 @@
 import { Avatar, Box, Divider, Flex, Text, VStack } from "@chakra-ui/react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BsThreeDots } from "react-icons/bs";
 import Actions from "./Actions";
+import useApi from "../hooks/useApi";
+import { useRecoilValue } from "recoil";
+import userAtom from "../atoms/userAtom";
 
-const Comment = ({
-  comment,
-  commenterImage,
-  commenterName,
-  commenterLikes,
-}) => {
-  const [liked, setLiked] = useState(false);
+// i will add reply to the replies later
+const Comment = ({ reply, postId }) => {
+  if (!reply) return;
+  const { _id: currentUserId } = useRecoilValue(userAtom);
+  const request = useApi();
+
+  const [loading, setLoading] = useState(false);
+  const [likesLength, setLikesLength] = useState(reply.likes.length);
+  const [liked, setLiked] = useState(reply.likes.includes(currentUserId));
+
+  const handleLikeUnlike = async () => {
+    setLoading(true);
+    const data = await request(
+      `/posts/likeUnlikeReply/${postId}/${reply._id}`,
+      "PATCH"
+    );
+    if (!data) return;
+    setLoading(false);
+    setLikesLength(data.likesLength);
+    setLiked(data.liked);
+  };
+
   return (
     <>
       <Flex w={"full"} gap={4}>
         <Box>
-          <Avatar size={"sm"} src={commenterImage} name={commenterName} />
+          <Avatar
+            size={"sm"}
+            src={reply.userProfilePic}
+            name={reply.username}
+          />
         </Box>
         <VStack alignItems={"start"} flex={1} gap={1}>
           <Flex
@@ -23,16 +45,20 @@ const Comment = ({
             alignItems={"center"}
           >
             <Text fontSize={"sm"} fontWeight={"bold"}>
-              {commenterName}
+              {reply.text}
             </Text>
             <Flex gap={2} alignItems={"center"}>
               <Text color={"gray.light"}>2d</Text>
               <BsThreeDots />
             </Flex>
           </Flex>
-          <Text>{comment}</Text>
-          <Actions liked={liked} setLiked={setLiked} />
-          <Text>{liked ? commenterLikes + 1 : commenterLikes} likes</Text>
+          <Text>{reply.text}</Text>
+          <Actions
+            loading={loading}
+            liked={liked}
+            handleLikeUnlike={handleLikeUnlike}
+          />
+          <Text>{likesLength} likes</Text>
         </VStack>
       </Flex>
       <Divider></Divider>

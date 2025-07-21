@@ -40,7 +40,11 @@ export const createPost = async (req, res) => {
       imgUrl = uploadedImage.secure_url;
     }
 
-    const post = await Post.create({ postedBy: req.user._id, text, imgUrl });
+    const post = await Post.create({
+      postedBy: req.user._id,
+      text,
+      img: imgUrl,
+    });
 
     res.status(201).json({
       message: "Post created successfully",
@@ -55,7 +59,10 @@ export const getPostByPostId = async (req, res) => {
   try {
     const { postId } = req.params;
 
-    const post = await Post.findById(postId);
+    const post = await Post.findById(postId).populate({
+      path: "postedBy",
+      select: "-password",
+    });
 
     if (!post) return res.status(404).json({ error: "Post not found" });
 
@@ -69,8 +76,13 @@ export const getPostByPostId = async (req, res) => {
 export const getPostByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
-
-    const posts = await Post.find({ postedBy: userId });
+    const posts = await Post.find({ postedBy: userId })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .populate({
+        path: "postedBy",
+        select: "-password",
+      });
 
     if (!posts) return res.status(404).json({ error: "Posts not found" });
 
@@ -203,5 +215,40 @@ export const getUserFeed = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
     console.log("Error in getUserFeed");
+  }
+};
+
+export const likeUnlikePostReply = async (req, res) => {
+  try {
+    const { postId, replyId } = req.params;
+    const userId = req.user._id;
+
+    const post = await Post.findById(postId);
+
+    if (!post) return res.status(404).json({ error: "Post not found" });
+
+    const reply = post.replies.find(
+      (reply) => reply._id.toString() === replyId
+    );
+    if (!reply) return res.status(404).json({ error: "Reply not found" });
+
+    const isLiked = reply.likes.includes(userId);
+
+    if (isLiked) {
+      reply.likes.pull(userId);
+    } else {
+      reply.likes.push(userId);
+    }
+
+    await post.save();
+
+    return res.status(200).json({
+      message: `reply ${isLiked ? "unliked" : "liked"} successfully`,
+      likesLength: reply.likes.length,
+      liked: !isLiked,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log("Error in likeUnlikePost");
   }
 };

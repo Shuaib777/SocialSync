@@ -6,6 +6,7 @@ import {
   getPostByUserId,
   getUserFeed,
   likeUnlikePost,
+  likeUnlikePostReply,
   replyToPost,
   updatePost,
 } from "../controller/postController.js";
@@ -29,6 +30,7 @@ postRouter
     updatePost
   )
   .patch("/likeUnlike/:postId", protectRoute, likeUnlikePost)
+  .patch("/likeUnlikeReply/:postId/:replyId", protectRoute, likeUnlikePostReply)
   .patch("/reply/:postId", protectRoute, replyToPost);
 
 export default postRouter;
