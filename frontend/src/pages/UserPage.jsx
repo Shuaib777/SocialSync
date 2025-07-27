@@ -6,8 +6,9 @@ import API_URL from "../config/apiConfig.js";
 import useCustomToast from "../hooks/useCustomToast";
 import { Flex, Spinner } from "@chakra-ui/react";
 import useApi from "../hooks/useApi.jsx";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom.jsx";
+import postsAtom from "../atoms/postsAtom.jsx";
 
 const UserPage = () => {
   const { username } = useParams();
@@ -15,7 +16,7 @@ const UserPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const showToast = useCustomToast();
   const request = useApi();
-  const [profileUserPosts, setProfileUserPosts] = useState([]);
+  const [profileUserPosts, setProfileUserPosts] = useRecoilState(postsAtom);
   const currentUser = useRecoilValue(userAtom);
   const [isPostsLoading, setIsPostsLoading] = useState(true);
 
@@ -54,12 +55,6 @@ const UserPage = () => {
     getUserPosts();
   }, [profileUser]);
 
-  const updatePostInState = (updatedPost) => {
-    setProfileUserPosts((prevPosts) =>
-      prevPosts.map((p) => (p._id === updatedPost._id ? updatedPost : p))
-    );
-  };
-
   if (isLoading)
     return (
       <Flex alignItems={"center"} justifyContent={"center"} w={"full"}>
@@ -87,7 +82,11 @@ const UserPage = () => {
               <h1>User Does Not have recent Posts</h1>
             ))}
           {profileUserPosts?.map((post) => (
-            <UserPost key={post._id} post={post} setPost={updatePostInState} />
+            <UserPost
+              key={post._id}
+              isDelete={currentUser._id === profileUser._id}
+              post={post}
+            />
           ))}
         </>
       )}

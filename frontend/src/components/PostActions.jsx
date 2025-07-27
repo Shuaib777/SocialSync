@@ -1,11 +1,12 @@
 import { Box, Flex, Text } from "@chakra-ui/react";
 import React, { useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
 import useApi from "../hooks/useApi";
 import Actions from "./Actions";
+import postsAtom from "../atoms/postsAtom";
 
-const PostActions = ({ post, setPost }) => {
+const PostActions = ({ post, setSinglePost }) => {
   const { _id: currentUserId } = useRecoilValue(userAtom);
   const request = useApi();
 
@@ -15,6 +16,7 @@ const PostActions = ({ post, setPost }) => {
   const [likesLength, setLikesLength] = useState(post.likes.length);
   const [liked, setLiked] = useState(post.likes.includes(currentUserId));
   const [repliesCount, setRepliesCount] = useState(post.replies.length);
+  const setPosts = useSetRecoilState(postsAtom);
 
   const handleLikeUnlike = async () => {
     setLiking(true);
@@ -33,7 +35,13 @@ const PostActions = ({ post, setPost }) => {
     setReplying(false);
     if (!data) return;
 
-    setPost(data.newPost);
+    setPosts((posts) =>
+      posts.map((prevPost) =>
+        prevPost._id === post._id ? data.newPost : prevPost
+      )
+    );
+
+    if (setSinglePost) setSinglePost(data.newPost);
     setRepliesCount((prev) => prev + 1);
   };
 

@@ -4,27 +4,58 @@ import { Box, Flex, Text } from "@chakra-ui/layout";
 import { BsThreeDots } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import Actions from "./Actions";
 import useApi from "../hooks/useApi";
-import { useRecoilValue } from "recoil";
-import userAtom from "../atoms/userAtom";
 import PostActions from "./PostActions";
-import { Skeleton } from "@chakra-ui/react";
+import {
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Portal,
+  Skeleton,
+} from "@chakra-ui/react";
+import useCustomToast from "../hooks/useCustomToast";
+import { useSetRecoilState } from "recoil";
+import postsAtom from "../atoms/postsAtom";
+import getRelativeTime from "../utils/date";
 
-const UserPost = ({ post, setPost }) => {
+const UserPost = ({ post, isDelete }) => {
   if (!post) return;
   const user = post.postedBy;
   const navigate = useNavigate();
   const [loaded, setLoaded] = useState(false);
+  const showToast = useCustomToast();
+  const [deleting, setDeleting] = useState(false);
+  const request = useApi();
+  const setPosts = useSetRecoilState(postsAtom);
+
+  const copyPostUrl = () => {
+    navigator.clipboard
+      .writeText(`/${user?.username}/post/${post._id}`)
+      .then(() => {
+        showToast("Copied", "Post Link Copied", "success");
+      });
+  };
+
+  const deletePost = async () => {
+    if (deleting) return;
+    setDeleting(true);
+    const data = request(`/posts/deletePost/${post._id}`, "DELETE");
+    setDeleting(false);
+    if (!data) return;
+
+    showToast("Deleted", "Post Deleted successfully", "success");
+    setPosts((prev) => prev.filter((prevPost) => prevPost._id !== post._id));
+  };
 
   return (
-    <Link to={`/${user.username}/post/${post?._id}`}>
+    <Link to={`/${user?.username}/post/${post._id}`}>
       <Flex gap={3} mb={4} py={5}>
         <Flex flexDirection={"column"} alignItems={"center"}>
           <Avatar
             size="md"
-            name={user.username}
-            src={user.profilePic}
+            name={user?.username}
+            src={user?.profilePic}
             cursor={"pointer"}
             onClick={(e) => {
               e.preventDefault();
@@ -79,14 +110,45 @@ const UserPost = ({ post, setPost }) => {
               <Image src="/verified.png" w={4} h={4} ml={1} />
             </Flex>
             <Flex gap={4} alignItems={"center"}>
-              <Text fontStyle={"sm"} color={"gray.light"}>
-                1d
+              <Text
+                fontSize={14}
+                color={"gray.light"}
+                width={30}
+                textAlign={"right"}
+              >
+                {getRelativeTime(post.createdAt)}
               </Text>
-              <BsThreeDots
-                onClick={(e) => {
-                  e.preventDefault();
-                }}
-              />
+              <Box
+                className="icon-container"
+                cursor={"pointer"}
+                onClick={(e) => e.preventDefault()}
+              >
+                <Menu>
+                  <MenuButton>
+                    <BsThreeDots size={24} />
+                  </MenuButton>
+                  <Portal>
+                    <MenuList bg={"gray.dark"}>
+                      <MenuItem
+                        bg={"gray.dark"}
+                        _hover={{ bg: "gray.light" }}
+                        onClick={copyPostUrl}
+                      >
+                        Copy Post Link
+                      </MenuItem>
+                      {isDelete && (
+                        <MenuItem
+                          bg={"gray.dark"}
+                          _hover={{ bg: "gray.light" }}
+                          onClick={deletePost}
+                        >
+                          Delete Post
+                        </MenuItem>
+                      )}
+                    </MenuList>
+                  </Portal>
+                </Menu>
+              </Box>
             </Flex>
           </Flex>
 
@@ -106,7 +168,7 @@ const UserPost = ({ post, setPost }) => {
             </Box>
           )}
 
-          <PostActions post={post} setPost={setPost} />
+          <PostActions post={post} />
         </Flex>
       </Flex>
     </Link>

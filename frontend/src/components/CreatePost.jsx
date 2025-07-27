@@ -23,6 +23,8 @@ import usePreviewImage from "../hooks/usePreviewImage";
 import useApi from "../hooks/useApi";
 import useCustomToast from "../hooks/useCustomToast";
 import imageCompression from "browser-image-compression";
+import { useSetRecoilState } from "recoil";
+import postsAtom from "../atoms/postsAtom";
 
 const CreatePost = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -33,6 +35,7 @@ const CreatePost = () => {
   const request = useApi();
   const showToast = useCustomToast();
   const [isLoading, setIsLoading] = useState(false);
+  const setPosts = useSetRecoilState(postsAtom);
 
   const handleTextChange = (e) => {
     const newValue = e.target.value;
@@ -58,12 +61,9 @@ const CreatePost = () => {
         formData.append("postImage", compressedFile);
       }
 
-      // if (imageRef.current?.files[0])
-      //   formData.append("postImage", imageRef.current.files[0]);
-
       const data = await request("/posts/createPost", "POST", formData, true);
       if (!data) return;
-
+      setPosts((posts) => [data.post, ...posts]);
       showToast("Success", "Post created Successfully", "success");
       onClose();
     } catch (error) {
@@ -122,7 +122,10 @@ const CreatePost = () => {
                   top={2}
                   right={2}
                   bg={"gray.dark"}
-                  onClick={() => setImgUrl("")}
+                  onClick={() => {
+                    imageRef.current.value = "";
+                    setImgUrl("");
+                  }}
                 />
               </Flex>
             )}

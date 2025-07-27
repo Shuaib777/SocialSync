@@ -5,6 +5,11 @@ import {
   Divider,
   Flex,
   Image,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Portal,
   Spinner,
   Text,
   VStack,
@@ -18,6 +23,8 @@ import useApi from "../hooks/useApi";
 import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import PostActions from "../components/PostActions";
+import useCustomToast from "../hooks/useCustomToast";
+import getRelativeTime from "../utils/date";
 
 const PostPage = ({ postImg = true, likes = 200 }) => {
   const { pid } = useParams();
@@ -25,6 +32,14 @@ const PostPage = ({ postImg = true, likes = 200 }) => {
   const [post, setPost] = useState({});
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState({});
+  const showToast = useCustomToast();
+
+  const copyPostUrl = () => {
+    const currentURL = window.location.href;
+    navigator.clipboard.writeText(currentURL).then(() => {
+      showToast("Copied", "Post Link Copied", "success");
+    });
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -36,7 +51,7 @@ const PostPage = ({ postImg = true, likes = 200 }) => {
       setLoading(false);
     };
     getPostDetails();
-  }, [setPost]);
+  }, []);
 
   if (loading) {
     return (
@@ -63,10 +78,36 @@ const PostPage = ({ postImg = true, likes = 200 }) => {
           </Flex>
         </Flex>
         <Flex gap={4} alignItems={"center"}>
-          <Text fontStyle={"sm"} color={"gray.light"}>
-            {user.createdAt.substring(0, 8)}
+          <Text
+            fontSize={14}
+            color={"gray.light"}
+            width={30}
+            textAlign={"right"}
+          >
+            {getRelativeTime(post.createdAt)}
           </Text>
-          <BsThreeDots />
+          <Box
+            className="icon-container"
+            cursor={"pointer"}
+            onClick={(e) => e.preventDefault()}
+          >
+            <Menu>
+              <MenuButton>
+                <BsThreeDots size={24} />
+              </MenuButton>
+              <Portal>
+                <MenuList bg={"gray.dark"}>
+                  <MenuItem
+                    bg={"gray.dark"}
+                    _hover={{ bg: "gray.light" }}
+                    onClick={copyPostUrl}
+                  >
+                    Copy Post Link
+                  </MenuItem>
+                </MenuList>
+              </Portal>
+            </Menu>
+          </Box>
         </Flex>
       </Flex>
       <Text textAlign={"start"}>{post.text}</Text>
@@ -81,7 +122,7 @@ const PostPage = ({ postImg = true, likes = 200 }) => {
         </Box>
       )}
 
-      <PostActions post={post} setPost={setPost} />
+      <PostActions post={post} setSinglePost={setPost} />
 
       <Divider></Divider>
       <Flex w={"full"} alignItems={"center"} justifyContent={"space-between"}>

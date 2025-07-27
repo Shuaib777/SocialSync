@@ -40,14 +40,20 @@ export const createPost = async (req, res) => {
       imgUrl = uploadedImage.secure_url;
     }
 
-    const post = await Post.create({
+    let post = await Post.create({
       postedBy: req.user._id,
       text,
       img: imgUrl,
     });
 
+    post = await post.populate({
+      path: "postedBy",
+      select: "-password",
+    });
+
     res.status(201).json({
       message: "Post created successfully",
+      post,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
