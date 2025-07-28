@@ -12,6 +12,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useRecoilState(postsAtom);
   const user = useRecoilValue(userAtom);
+  const [hasPost, setHasPost] = useState(false);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -37,11 +38,10 @@ const HomePage = () => {
 
   return (
     <>
-      {posts.length === 0 && (
-        <h1>Follow Some Users to show them on your feed</h1>
-      )}
+      {!hasPost && <h1>Follow Some Users to show them on your feed</h1>}
       {posts?.map((post) => {
         if (user && post.postedBy._id === user._id) return;
+        if (!hasPost) setHasPost(true);
         return <UserPost key={post._id} post={post} />;
       })}
     </>

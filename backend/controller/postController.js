@@ -1,6 +1,12 @@
 import Post from "../model/postModel.js";
 import User from "../model/userModel.js";
 import { v2 as cloudinary } from "cloudinary";
+import {
+  averageEmbeddings,
+  getEmbedding,
+  weightedAverageEmbeddings,
+} from "../util/embedding.js";
+import { cosineSimilarity } from "../util/similarity.js";
 
 export const createPost = async (req, res) => {
   try {
@@ -279,5 +285,76 @@ export const likeUnlikePostReply = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
     console.log("Error in likeUnlikePost");
+  }
+};
+
+export const recommendPosts = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const user = await User.findById(userId);
+
+    const WEIGHTS = {
+      bio: 0.5,
+      liked: 0.2,
+      posted: 0.15,
+      replied: 0.15,
+    };
+
+    const bioEmbedding = await getEmbedding(
+      user.bio || "interested in tech, sports, and AI"
+    ); // single vector
+
+    const likedPosts = await Post.find({ _id: { $in: user.likedPosts || [] } });
+    const likedEmbeddings = await Promise.all(
+      likedPosts.map((post) => getEmbedding(post.text || ""))
+    ); // array of vectors
+
+    const userPosts = await Post.find({ postedBy: userId });
+    const postedEmbeddings = await Promise.all(
+      userPosts.map((post) => getEmbedding(post.text || ""))
+    );
+
+    const repliedPosts = await Post.find({ "replies.userId": userId });
+    const repliedEmbeddings = await Promise.all(
+      repliedPosts.map((post) => getEmbedding(post.text || ""))
+    );
+
+    const safeAverage = (vectors) =>
+      Array.isArray(vectors) && vectors.length > 0
+        ? averageEmbeddings(vectors)
+        : null;
+
+    const userEmbedding = weightedAverageEmbeddings(
+      [
+        { vector: bioEmbedding, weight: WEIGHTS.bio },
+        { vector: safeAverage(likedEmbeddings), weight: WEIGHTS.liked },
+        { vector: safeAverage(postedEmbeddings), weight: WEIGHTS.posted },
+        { vector: safeAverage(repliedEmbeddings), weight: WEIGHTS.replied },
+      ].filter((e) => e.vector !== null)
+    );
+
+    const posts = await Post.find({ postedBy: { $ne: userId } }).populate(
+      "postedBy",
+      "username"
+    );
+
+    const scoredPosts = [];
+
+    for (const post of posts) {
+      const content = post.text || post.replies[0]?.text || "";
+      if (!content.trim()) continue;
+
+      const postEmbedding = await getEmbedding(content);
+      const similarity = cosineSimilarity(userEmbedding, postEmbedding);
+
+      scoredPosts.push({ post, score: similarity });
+    }
+
+    scoredPosts.sort((a, b) => b.score - a.score);
+
+    res.status(200).json(scoredPosts.slice(0, 10).map((item) => item.post));
+  } catch (err) {
+    console.error("Error in recommendPosts:", err);
+    res.status(500).json({ error: err.message });
   }
 };

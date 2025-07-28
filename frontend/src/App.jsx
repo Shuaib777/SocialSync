@@ -46,9 +46,3 @@ const App = () => {
 };
 
 export default App;
-
-// social sync remaining work
-// 	home page feed
-// 	like and reply
-// 	userPage
-// 	chat app
