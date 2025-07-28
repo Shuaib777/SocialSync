@@ -1,49 +1,77 @@
-import { Button, Flex, Spinner } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import useApi from "../hooks/useApi";
-import UserPost from "../components/UserPost";
+import { useEffect, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
+import { Spinner, Flex } from "@chakra-ui/react";
 import postsAtom from "../atoms/postsAtom";
 import userAtom from "../atoms/userAtom";
+import useApi from "../hooks/useApi";
+import UserPost from "../components/UserPost";
 
 const HomePage = () => {
   const request = useApi();
   const [loading, setLoading] = useState(true);
+  const [loadingRecommended, setLoadingRecommended] = useState(true);
+
   const [posts, setPosts] = useRecoilState(postsAtom);
-  const user = useRecoilValue(userAtom);
+  const [recommendedPosts, setRecommendedPosts] = useState([]);
+
   const [hasPost, setHasPost] = useState(false);
+  const user = useRecoilValue(userAtom);
 
   useEffect(() => {
     const fetchPosts = async () => {
-      try {
-        const data = await request("/posts/feeds");
-        if (!data) return;
-        setPosts(data);
-      } catch (e) {
-      } finally {
-        setLoading(false);
-      }
+      const data = await request("/posts/feeds");
+      if (data) setPosts(data);
+      setLoading(false);
     };
     fetchPosts();
   }, []);
 
+  useEffect(() => {
+    const fetchRecommendedPosts = async () => {
+      const data = await request("/posts/recommend");
+      if (data) setRecommendedPosts(data);
+      setLoadingRecommended(false);
+    };
+
+    if (!loading && user) {
+      fetchRecommendedPosts();
+    }
+  }, [loading, user]);
+
   if (loading) {
     return (
-      <Flex alignItems={"center"} justifyContent={"center"} w={"full"}>
-        <Spinner size={"xl"} />
+      <Flex alignItems="center" justifyContent="center" w="full">
+        <Spinner size="xl" />
       </Flex>
     );
   }
 
   return (
     <>
-      {!hasPost && <h1>Follow Some Users to show them on your feed</h1>}
+      {!hasPost && <h1>Follow some users to see posts on your feed</h1>}
+
       {posts?.map((post) => {
-        if (user && post.postedBy._id === user._id) return;
+        if (user && post.postedBy._id === user._id) return null;
         if (!hasPost) setHasPost(true);
         return <UserPost key={post._id} post={post} />;
       })}
+
+      {loadingRecommended && (
+        <Flex alignItems="center" justifyContent="center" w="full">
+          <Spinner size="xl" />
+        </Flex>
+      )}
+
+      {!loadingRecommended && recommendedPosts.length > 0 && (
+        <div style={{ marginTop: "2rem" }}>
+          <h2 style={{ fontWeight: "bold", marginBottom: "1rem" }}>
+            Recommended Posts
+          </h2>
+          {recommendedPosts.map((post) => (
+            <UserPost key={post._id} post={post} />
+          ))}
+        </div>
+      )}
     </>
   );
 };

@@ -11,7 +11,7 @@ export const getEmbedder = async () => {
 export const getEmbedding = async (text) => {
   const embedder = await getEmbedder();
   const output = await embedder(text, { pooling: "mean", normalize: true });
-  return output.data;
+  return Array.from(output.data);
 };
 
 export const averageEmbeddings = (vectors) => {

@@ -7,6 +7,10 @@ const postSchema = mongoose.Schema(
       ref: "User",
       required: true,
     },
+    embedding: {
+      type: [Number],
+      select: false,
+    },
     text: {
       type: String,
       maxLength: 500,

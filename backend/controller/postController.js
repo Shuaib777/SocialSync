@@ -46,10 +46,13 @@ export const createPost = async (req, res) => {
       imgUrl = uploadedImage.secure_url;
     }
 
+    const embedding = getEmbedding(text);
+
     let post = await Post.create({
       postedBy: req.user._id,
       text,
       img: imgUrl,
+      embedding,
     });
 
     post = await post.populate({
@@ -139,6 +142,7 @@ export const updatePost = async (req, res) => {
 
     if (text) update.text = text;
     if (img) update.img = img;
+    update.embedding = getEmbedding(text);
 
     const updatedPost = await Post.findByIdAndUpdate(postId, update, {
       new: true,
@@ -302,22 +306,29 @@ export const recommendPosts = async (req, res) => {
 
     const bioEmbedding = await getEmbedding(
       user.bio || "interested in tech, sports, and AI"
-    ); // single vector
-
-    const likedPosts = await Post.find({ _id: { $in: user.likedPosts || [] } });
-    const likedEmbeddings = await Promise.all(
-      likedPosts.map((post) => getEmbedding(post.text || ""))
-    ); // array of vectors
-
-    const userPosts = await Post.find({ postedBy: userId });
-    const postedEmbeddings = await Promise.all(
-      userPosts.map((post) => getEmbedding(post.text || ""))
     );
 
+    const likedPosts = await Post.find({ likes: userId });
+    const postedPosts = await Post.find({ postedBy: userId });
     const repliedPosts = await Post.find({ "replies.userId": userId });
-    const repliedEmbeddings = await Promise.all(
-      repliedPosts.map((post) => getEmbedding(post.text || ""))
-    );
+
+    const getCachedEmbeddings = async (posts) => {
+      const embeddings = [];
+      for (const post of posts) {
+        if (!post.embedding || post.embedding.length === 0) {
+          const embedding = await getEmbedding(post.text);
+          await Post.updateOne({ _id: post._id }, { embedding });
+          embeddings.push(embedding);
+        } else {
+          embeddings.push(post.embedding);
+        }
+      }
+      return embeddings;
+    };
+
+    const likedEmbeddings = await getCachedEmbeddings(likedPosts);
+    const postedEmbeddings = await getCachedEmbeddings(postedPosts);
+    const repliedEmbeddings = await getCachedEmbeddings(repliedPosts);
 
     const safeAverage = (vectors) =>
       Array.isArray(vectors) && vectors.length > 0
@@ -333,26 +344,36 @@ export const recommendPosts = async (req, res) => {
       ].filter((e) => e.vector !== null)
     );
 
-    const posts = await Post.find({ postedBy: { $ne: userId } }).populate(
-      "postedBy",
-      "username"
-    );
+    const excludedUserIds = [userId, ...user.following];
+    const posts = await Post.find({
+      postedBy: { $nin: excludedUserIds },
+    }).populate({
+      path: "postedBy",
+      select: "-password",
+    });
 
     const scoredPosts = [];
 
     for (const post of posts) {
-      const content = post.text || post.replies[0]?.text || "";
-      if (!content.trim()) continue;
+      if (!post.embedding || post.embedding.length === 0) {
+        const embedding = await getEmbedding(post.text);
+        await Post.updateOne({ _id: post._id }, { embedding });
+        post.embedding = embedding;
+      }
 
-      const postEmbedding = await getEmbedding(content);
-      const similarity = cosineSimilarity(userEmbedding, postEmbedding);
-
+      const similarity = cosineSimilarity(userEmbedding, post.embedding);
       scoredPosts.push({ post, score: similarity });
     }
 
     scoredPosts.sort((a, b) => b.score - a.score);
 
-    res.status(200).json(scoredPosts.slice(0, 10).map((item) => item.post));
+    const topPosts = scoredPosts.slice(0, 10).map(({ post }) => {
+      const postObj = post.toObject();
+      delete postObj.embedding; // Remove embedding before sending response
+      return postObj;
+    });
+
+    res.status(200).json(topPosts);
   } catch (err) {
     console.error("Error in recommendPosts:", err);
     res.status(500).json({ error: err.message });
