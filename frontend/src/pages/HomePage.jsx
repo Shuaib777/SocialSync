@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { Spinner, Flex } from "@chakra-ui/react";
+import { BeatLoader } from "react-spinners";
 import postsAtom from "../atoms/postsAtom";
 import userAtom from "../atoms/userAtom";
 import useApi from "../hooks/useApi";
@@ -57,8 +58,8 @@ const HomePage = () => {
       })}
 
       {loadingRecommended && (
-        <Flex alignItems="center" justifyContent="center" w="full">
-          <Spinner size="xl" />
+        <Flex mt={5} alignItems="center" justifyContent="center" w="full">
+          <BeatLoader size={10} color="white" />
         </Flex>
       )}
 

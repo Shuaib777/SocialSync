@@ -5,7 +5,7 @@ import { v2 as cloudinary } from "cloudinary";
 
 export const getUserProfile = async (req, res) => {
   try {
-    const username = req.params.username;
+    let username = req.params.username.toLowerCase();
     const user = await User.findOne({ username });
 
     if (!user) return res.status(400).json({ error: "User not found" });
@@ -21,7 +21,21 @@ export const getUserProfile = async (req, res) => {
 
 export const signupUser = async (req, res) => {
   try {
-    const { name, email, username, password } = req.body;
+    let { name, email, username, password } = req.body;
+    username = username.toLowerCase();
+    email = email.toLowerCase();
+
+    if (username.includes(" ")) {
+      return res
+        .status(400)
+        .json({ error: "Username must not contain spaces" });
+    }
+
+    if (username.length > 20) {
+      return res
+        .status(400)
+        .json({ error: "Username must be 20 characters or less" });
+    }
 
     const user = await User.findOne({ $or: [{ email }, { username }] });
 
@@ -60,7 +74,9 @@ export const signupUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { password } = req.body;
+    let { username } = req.body;
+    username = username.toLowerCase();
 
     const user = await User.findOne({ username });
     const isPasswordCorrect = await bcrypt.compare(
@@ -144,7 +160,10 @@ export const updateUser = async (req, res) => {
   try {
     if (!req.user?._id) return res.status(401).json({ error: "Unauthorized" });
 
-    const { email, password, name, bio } = req.body;
+    const { password, name, bio } = req.body;
+    let { email } = req.body;
+    email = email.toLowerCase();
+
     const file = req.file;
 
     const update = {};
@@ -198,5 +217,23 @@ export const updateUser = async (req, res) => {
     res.status(200).json(userResponse);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+export const searchUser = async (req, res) => {
+  try {
+    const { query } = req.query;
+
+    if (!query || query.trim() === "") {
+      return res.status(400).json({ message: "Query is required" });
+    }
+
+    const users = await User.find({
+      username: { $regex: `^${query}`, $options: "i" },
+    }).limit(10);
+
+    return res.status(200).json(users);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 };

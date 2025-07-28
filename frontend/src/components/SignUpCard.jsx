@@ -38,6 +38,23 @@ const SignupCard = ({ setIsSignup }) => {
 
   const handleSubmit = async () => {
     try {
+      if (inputs.username.includes(" ")) {
+        showToast(
+          "Invalid Username",
+          "Username must not contain spaces",
+          "error"
+        );
+        return;
+      }
+
+      if (inputs.username.length > 20) {
+        showToast(
+          "Invalid Username",
+          "Username must be 20 characters or less",
+          "error"
+        );
+        return;
+      }
       const data = await request("/users/signup", "POST", inputs, false, true);
       if (!data) return;
 

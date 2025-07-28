@@ -70,13 +70,13 @@ const UserPage = () => {
     <>
       <UserHeader profileUser={profileUser} setProfileUser={setProfileUser} />
       {isPostsLoading ? (
-        <Flex alignItems={"center"} justifyContent={"center"} w={"full"}>
+        <Flex mt={5} alignItems={"center"} justifyContent={"center"} w={"full"}>
           <Spinner size={"xl"} />
         </Flex>
       ) : (
         <>
           {profileUserPosts.length === 0 &&
-            (currentUser._id === profileUser._id ? (
+            (currentUser?._id === profileUser._id ? (
               <h1>Post Something to see your posts here</h1>
             ) : (
               <h1>User Does Not have recent Posts</h1>

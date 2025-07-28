@@ -4,6 +4,7 @@ import {
   getUserProfile,
   loginUser,
   logoutUser,
+  searchUser,
   signupUser,
   updateUser,
 } from "../controller/userController.js";
@@ -19,6 +20,7 @@ userRouter
   .post("/signup", signupUser)
   .post("/login", loginUser)
   .post("/logout", protectRoute, logoutUser)
+  .get("/searchUser/", searchUser)
   .post("/followUnfollow/:id", protectRoute, followUnfollowUser)
   .patch("/update", protectRoute, upload.single("profilePic"), updateUser);
 

@@ -40,6 +40,14 @@ const UserHeader = ({ profileUser, setProfileUser }) => {
 
   const handleFollowUnfollow = async () => {
     try {
+      if (!currentUser) {
+        showToast(
+          "Login/Signup",
+          "Login/Signup to follow/Unfollow user",
+          "Erro"
+        );
+        return;
+      }
       setIsLoading(true);
       const data = await apiRequest(
         `users/followUnfollow/${profileUser._id}`,
@@ -112,7 +120,7 @@ const UserHeader = ({ profileUser, setProfileUser }) => {
         </Box>
       </Flex>
       <Text>{profileUser.bio}</Text>
-      {currentUser._id === profileUser._id ? (
+      {currentUser?._id === profileUser._id ? (
         <Link as={RouterLink} to="/update">
           <Button>Update Profile</Button>
         </Link>

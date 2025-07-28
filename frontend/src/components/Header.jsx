@@ -5,18 +5,20 @@ import userAtom from "../atoms/userAtom";
 import React from "react";
 import { IoHome } from "react-icons/io5";
 import { CgProfile } from "react-icons/cg";
+import Search from "./Search";
 
 const Header = () => {
   const { colorMode, toggleColorMode } = useColorMode();
   const user = useRecoilValue(userAtom);
 
   return (
-    <Flex justifyContent={"space-between"} mt={6} mb={12}>
+    <Flex justifyContent={"space-between"} alignItems={"center"} mt={6} mb={12}>
       {user && (
         <Link to={"/"}>
           <IoHome size={24} />
         </Link>
       )}
+      <Search />
       <Image
         cursor={"pointer"}
         alt={"logo"}
