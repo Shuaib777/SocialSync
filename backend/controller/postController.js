@@ -31,6 +31,7 @@ export const createPost = async (req, res) => {
           {
             resource_type: "image",
             folder: `${req.user._id}_post`,
+            transformation: [{ width: 720, crop: "limit", quality: "auto" }],
           },
           (error, result) => {
             if (error) {
@@ -46,7 +47,7 @@ export const createPost = async (req, res) => {
       imgUrl = uploadedImage.secure_url;
     }
 
-    const embedding = getEmbedding(text);
+    const embedding = await getEmbedding(text);
 
     let post = await Post.create({
       postedBy: req.user._id,
@@ -117,6 +118,15 @@ export const deletePost = async (req, res) => {
 
     if (post.postedBy.toString() !== req.user._id.toString())
       return res.status(403).json({ error: "Unauthorized to delete post" });
+
+    if (post.img) {
+      const parts = post.img.split("/");
+      const fileNameWithExtension = parts.pop();
+      const folder = parts.pop();
+      const publicId = `${folder}/${fileNameWithExtension.split(".")[0]}`;
+
+      await cloudinary.uploader.destroy(publicId);
+    }
 
     await Post.findByIdAndDelete(postId);
 

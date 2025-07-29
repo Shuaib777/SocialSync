@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Button,
   Flex,
@@ -18,6 +16,9 @@ import { useRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
 import { useRef, useState } from "react";
 import usePreviewImage from "../hooks/usePreviewImage";
+import useApi from "../hooks/useApi";
+import imageCompression from "browser-image-compression";
+import useCustomToast from "../hooks/useCustomToast";
 
 export default function ProfilePage() {
   const [user, setUser] = useRecoilState(userAtom);
@@ -28,10 +29,11 @@ export default function ProfilePage() {
     profilePic: user.profilePic,
     password: "",
   });
-  const toast = useToast();
   const fileRef = useRef(null);
   const { imgUrl, handleImage } = usePreviewImage();
   const [loading, setLoading] = useState(false);
+  const request = useApi();
+  const showToast = useCustomToast();
 
   const handleUpdateUser = async () => {
     setLoading(true);
@@ -41,29 +43,28 @@ export default function ProfilePage() {
     formData.append("bio", inputs.bio);
     formData.append("password", inputs.password);
     if (fileRef.current?.files[0]) {
-      formData.append("profilePic", fileRef.current.files[0]);
-    }
-
-    const res = await fetch("/api/users/update", {
-      method: "PATCH",
-      body: formData,
-    });
-
-    const data = await res.json();
-
-    if (data.error) {
-      toast({
-        title: "Update Error",
-        description: data.error,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
+      const compressedFile = await imageCompression(fileRef.current.files[0], {
+        maxSizeMB: 0.15,
+        maxWidthOrHeight: 400,
+        useWebWorker: true,
       });
-      setLoading(false);
-      return;
+
+      formData.append("profilePic", compressedFile);
     }
 
+    const data = await request(
+      "/users/update",
+      "PATCH",
+      formData,
+      true,
+      false,
+      "Profile Updated Successfully"
+    );
     setLoading(false);
+
+    if (!data) return;
+
+    showToast("Profile Updated", "Profile Updates Successfully", "success");
     localStorage.setItem("user-posts", JSON.stringify(data));
     setUser(data);
   };

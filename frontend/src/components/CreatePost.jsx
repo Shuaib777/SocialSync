@@ -53,11 +53,12 @@ const CreatePost = () => {
         const compressedFile = await imageCompression(
           imageRef.current.files[0],
           {
-            maxSizeMB: 1,
-            maxWidthOrHeight: 1080,
+            maxSizeMB: 0.3,
+            maxWidthOrHeight: 800,
             useWebWorker: true,
           }
         );
+
         formData.append("postImage", compressedFile);
       }
 
