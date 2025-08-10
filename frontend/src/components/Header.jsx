@@ -6,6 +6,7 @@ import React from "react";
 import { IoHome } from "react-icons/io5";
 import { CgProfile } from "react-icons/cg";
 import Search from "./Search";
+import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 
 const Header = () => {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -26,6 +27,11 @@ const Header = () => {
         onClick={toggleColorMode}
         w={6}
       />
+      {user && (
+        <Link to={"/chat"}>
+          <IoChatbubbleEllipsesOutline size={24} />
+        </Link>
+      )}
       {user && (
         <Link to={`/${user.username}`}>
           <CgProfile size={24} />
