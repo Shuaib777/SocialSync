@@ -1,9 +1,12 @@
 import React from "react";
+import { useState } from "react";
 import { Box, Flex } from "@chakra-ui/react";
 import ChatList from "../components/ChatList";
 import MessageContainer from "../components/MessageContainer";
 
 const ChatPage = () => {
+  const [userSelected, setUserSelected] = useState(null);
+
   return (
     <Box
       position="absolute"
@@ -15,8 +18,8 @@ const ChatPage = () => {
       //   borderColor="gray.700"
     >
       <Flex direction={{ base: "column", md: "row" }} h={"100%"}>
-        <ChatList />
-        <MessageContainer />
+        <ChatList setUserSelected={setUserSelected} />
+        <MessageContainer userSelected={userSelected} />
       </Flex>
     </Box>
   );

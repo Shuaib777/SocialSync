@@ -19,7 +19,7 @@ const Header = () => {
           <IoHome size={24} />
         </Link>
       )}
-      <Search />
+      {user && <Search />}
       <Image
         cursor={"pointer"}
         alt={"logo"}

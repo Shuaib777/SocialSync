@@ -99,29 +99,94 @@ export const getMessages = async (req, res) => {
 
 export const getConversations = async (req, res) => {
   try {
-    const conversations = await Conversation.find({
-      participants: req.user._id,
-    })
-      .populate({
+    const { query } = req.query;
+    const currentUserId = req.user._id;
+    let results = [];
+
+    if (!query) {
+      // Mode 1: Only previous conversations
+      const conversations = await Conversation.find({
+        participants: currentUserId,
+      })
+        .populate({
+          path: "participants",
+          select: "_id username profilePic",
+        })
+        .sort({ updatedAt: -1 });
+
+      results = conversations.map((convo) => {
+        const otherParticipant = convo.participants.find(
+          (user) => user._id.toString() !== currentUserId.toString()
+        );
+        return {
+          _id: convo._id,
+          otherParticipant,
+          lastMessage: convo.lastMessage,
+          updatedAt: convo.updatedAt,
+        };
+      });
+    } else {
+      const regex = new RegExp("^" + query, "i");
+
+      const matchedUsers = await User.find({
+        username: { $regex: regex },
+        _id: { $ne: currentUserId },
+      }).select("_id username profilePic");
+
+      const matchedUserIds = matchedUsers.map((u) => u._id);
+
+      // only conversations between current user and matched users
+      const conversations = await Conversation.find({
+        participants: { $all: [currentUserId], $in: matchedUserIds },
+        "participants.2": { $exists: false },
+      }).populate({
         path: "participants",
         select: "_id username profilePic",
-      })
-      .sort({ updatedAt: -1 });
+      });
 
-    // in case of group i would have to delete this part and let client handle this
-    const formatted = conversations.map((convo) => {
-      const otherParticipant = convo.participants.filter(
-        (user) => user._id.toString() !== req.user._id.toString()
-      )[0];
-      return {
-        _id: convo._id,
-        otherParticipant,
-        lastMessage: convo.lastMessage,
-        updatedAt: convo.updatedAt,
-      };
-    });
+      // Build a lookup map for quick access
+      const convoMap = new Map();
+      for (const c of conversations) {
+        const other = c.participants.find(
+          (p) => p._id.toString() !== currentUserId.toString()
+        );
+        if (other) {
+          convoMap.set(other._id.toString(), c);
+        }
+      }
 
-    return res.status(200).json(formatted);
+      // Merge matched users with conversation data (if exists)
+      results = matchedUsers.map((user) => {
+        const convo = convoMap.get(user._id.toString());
+        return convo
+          ? {
+              _id: convo._id,
+              otherParticipant: user,
+              lastMessage: convo.lastMessage,
+              updatedAt: convo.updatedAt,
+            }
+          : {
+              _id: null, // no conversation yet
+              otherParticipant: user,
+              lastMessage: null,
+              updatedAt: null,
+            };
+      });
+
+      // Sort conversations first (by recent), then new users alphabetically
+      results.sort((a, b) => {
+        if (a.updatedAt && b.updatedAt) {
+          return new Date(b.updatedAt) - new Date(a.updatedAt);
+        }
+        if (a.updatedAt) return -1;
+        if (b.updatedAt) return 1;
+        return a.otherParticipant.username.localeCompare(
+          b.otherParticipant.username
+        );
+      });
+    }
+
+    return res.status(200).json(results);
   } catch (error) {
     console.error("Error in getConversations:", error);
     return res.status(500).json({ error: error.message });

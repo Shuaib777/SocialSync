@@ -21,7 +21,6 @@ import ChatPage from "./pages/ChatPage";
 
 const App = () => {
   const user = useRecoilValue(userAtom);
-  const { pathname } = useLocation();
 
   return (
     <Container position={"relative"} maxW="620px">

@@ -9,22 +9,64 @@ import {
   useColorMode,
   Avatar,
 } from "@chakra-ui/react";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import useApi from "../hooks/useApi";
 
-const ChatList = () => {
+const ChatList = ({ setUserSelected }) => {
   const { colorMode } = useColorMode();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [conversations, setConversations] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const request = useApi();
+
+  // Refs for debounce & stale prevention
+  const timeoutRef = useRef(null);
+  const requestCounterRef = useRef(0);
+
+  const handleChat = (convo) => {
+    setUserSelected(convo.otherParticipant);
+    setSearchQuery("");
+  };
 
   useEffect(() => {
-    setTimeout(() => {
-      setConversations([
-        { id: 1, name: "John Doe", lastMessage: "Hey, how are you?" },
-        { id: 2, name: "Jane Smith", lastMessage: "Let's meet tomorrow!" },
-      ]);
-      setLoading(false);
-    }, 1500);
-  }, []);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    const trimmedQuery = searchQuery.trim();
+
+    requestCounterRef.current += 1;
+    const currentRequestId = requestCounterRef.current;
+
+    // Debounce fetch
+    timeoutRef.current = setTimeout(async () => {
+      setLoading(true);
+
+      try {
+        const data = await request(
+          `/chat/getConversations?query=${trimmedQuery}`
+        );
+        // Prevent stale overwrite
+        if (currentRequestId === requestCounterRef.current) {
+          setConversations(data || []);
+        }
+      } catch (err) {
+        if (currentRequestId === requestCounterRef.current) {
+          setConversations([]);
+        }
+      } finally {
+        if (currentRequestId === requestCounterRef.current) {
+          setLoading(false);
+        }
+      }
+    }, 300);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [searchQuery]);
 
   return (
     <Box flex="30%" borderRight="1px solid" borderColor="gray.700" h="100%">
@@ -35,7 +77,12 @@ const ChatList = () => {
       </Flex>
 
       <Box p={4}>
-        <Input placeholder="Search..." size="sm" />
+        <Input
+          placeholder="Search..."
+          size="sm"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </Box>
 
       <VStack align="stretch" overflowY="auto" spacing={0}>
@@ -49,9 +96,9 @@ const ChatList = () => {
                 </Box>
               </Flex>
             ))
-          : conversations.map((c) => (
+          : conversations.map((convo, i) => (
               <Flex
-                key={c.id}
+                key={convo._id || `new-${i}`}
                 p={3}
                 align="center"
                 gap={3}
@@ -59,12 +106,20 @@ const ChatList = () => {
                   bg: colorMode === "dark" ? "gray.800" : "gray.200",
                   cursor: "pointer",
                 }}
+                onClick={() => handleChat(convo)}
               >
-                <Avatar w="40px" h="40px" />
+                <Avatar
+                  w="40px"
+                  h="40px"
+                  src={convo.otherParticipant.profilePic}
+                  name={convo.otherParticipant.username}
+                />
                 <Box>
-                  <Text fontWeight="bold">{c.name}</Text>
+                  <Text fontWeight="bold">
+                    {convo.otherParticipant.username}
+                  </Text>
                   <Text fontSize="sm" color="gray.500" noOfLines={1}>
-                    {c.lastMessage}
+                    {convo.lastMessage?.text.substring(0, 20)}
                   </Text>
                 </Box>
               </Flex>
