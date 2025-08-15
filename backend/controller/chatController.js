@@ -1,6 +1,7 @@
 import Conversation from "../model/conversationModel.js";
 import User from "../model/userModel.js";
 import Message from "../model/messageModel.js";
+import { io, onlineUsers } from "../socket/Socket.js";
 
 export const createMessage = async (req, res) => {
   try {
@@ -51,6 +52,10 @@ export const createMessage = async (req, res) => {
       createdAt: newMessage.createdAt,
     };
     await conversation.save();
+
+    const recipientSocketId = onlineUsers.get(recipientId);
+    if (recipientSocketId)
+      io.to(recipientSocketId).emit("newMessage", newMessage);
 
     return res.status(201).json(newMessage);
   } catch (err) {
@@ -144,7 +149,6 @@ export const getConversations = async (req, res) => {
         select: "_id username profilePic",
       });
 
-      // Build a lookup map for quick access
       const convoMap = new Map();
       for (const c of conversations) {
         const other = c.participants.find(
@@ -155,7 +159,7 @@ export const getConversations = async (req, res) => {
         }
       }
 
-      // Merge matched users with conversation data (if exists)
+      // Merge matched users with conversations one
       results = matchedUsers.map((user) => {
         const convo = convoMap.get(user._id.toString());
         return convo
@@ -166,7 +170,7 @@ export const getConversations = async (req, res) => {
               updatedAt: convo.updatedAt,
             }
           : {
-              _id: null, // no conversation yet
+              _id: null,
               otherParticipant: user,
               lastMessage: null,
               updatedAt: null,

@@ -7,11 +7,10 @@ import postRouter from "./routes/postRoutes.js";
 import cors from "cors";
 import { v2 as cloudinary } from "cloudinary";
 import chatRouter from "./routes/chatRoutes.js";
+import { app, server } from "./socket/Socket.js";
 
 dotenv.config();
-
 connectDB();
-const app = express();
 
 // app.use(
 //   cors({
@@ -19,6 +18,7 @@ const app = express();
 //     credentials: true,
 //   })
 // );
+
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -42,6 +42,6 @@ app.use("/api/users/", userRouter);
 app.use("/api/posts/", postRouter);
 app.use("/api/chat", chatRouter);
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`server running at localhost ${PORT}`);
 });

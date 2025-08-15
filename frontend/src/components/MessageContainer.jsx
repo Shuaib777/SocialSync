@@ -16,15 +16,24 @@ import { FaRegImage } from "react-icons/fa6";
 import Message from "./Message";
 import useApi from "../hooks/useApi";
 import { IoIosMail } from "react-icons/io";
+import { useSocket } from "../context/SocketsContext";
+import { useRecoilValue } from "recoil";
+import userAtom from "../atoms/userAtom";
 
-const MessageContainer = ({ userSelected }) => {
+const MessageContainer = ({
+  userSelected,
+  conversationSelected,
+  setConversations,
+}) => {
   const { colorMode } = useColorMode();
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const request = useApi();
   const messagesContainerRef = useRef();
-  const firstLoad = useRef();
+  const firstLoad = useRef(); // when first load the scroll should be auto else smooth
+  const { socket } = useSocket();
+  const user = useRecoilValue(userAtom);
 
   useEffect(() => {
     setMessages([]);
@@ -52,6 +61,44 @@ const MessageContainer = ({ userSelected }) => {
     if (firstLoad.current) firstLoad.current = false;
   }, [messages]);
 
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMessage = (newMessage) => {
+      if (
+        newMessage.sender._id === userSelected._id ||
+        user?._id === userSelected._id
+      ) {
+        setMessages((prev) => [...prev, newMessage]);
+      }
+
+      setConversations((prev) => {
+        const updated = prev.map((convo) =>
+          convo._id === newMessage.conversationId
+            ? {
+                ...convo,
+                lastMessage: { ...convo.lastMessage, text: newMessage.text },
+              }
+            : convo
+        );
+
+        const convoToMove = updated.find(
+          (c) => c._id === newMessage.conversationId
+        );
+        return [
+          convoToMove,
+          ...updated.filter((c) => c._id !== newMessage.conversationId),
+        ];
+      });
+    };
+
+    socket.on("newMessage", handleNewMessage);
+
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+    };
+  }, [socket, userSelected?._id, conversationSelected?._id]);
+
   const handleText = async () => {
     if (!userSelected) return;
 
@@ -60,7 +107,26 @@ const MessageContainer = ({ userSelected }) => {
       recipientId: userSelected._id,
     });
     if (!data) return;
+
     setMessages((prev) => [...prev, data]);
+
+    setConversations((prev) => {
+      const updated = prev.map((convo) =>
+        convo._id === conversationSelected._id
+          ? { ...convo, lastMessage: { ...convo.lastMessage, text: data.text } }
+          : convo
+      );
+
+      // updated conversation to the top
+      const convoToMove = updated.find(
+        (c) => c._id === conversationSelected._id
+      );
+      return [
+        convoToMove,
+        ...updated.filter((c) => c._id !== conversationSelected._id),
+      ];
+    });
+
     setText("");
   };
 

@@ -12,10 +12,14 @@ import {
 import React, { useState, useEffect, useRef } from "react";
 import useApi from "../hooks/useApi";
 
-const ChatList = ({ setUserSelected }) => {
+const ChatList = ({
+  setUserSelected,
+  setConversationSelected,
+  conversations,
+  setConversations,
+}) => {
   const { colorMode } = useColorMode();
   const [loading, setLoading] = useState(false);
-  const [conversations, setConversations] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const request = useApi();
 
@@ -25,6 +29,7 @@ const ChatList = ({ setUserSelected }) => {
 
   const handleChat = (convo) => {
     setUserSelected(convo.otherParticipant);
+    setConversationSelected(convo);
     setSearchQuery("");
   };
 
@@ -111,15 +116,15 @@ const ChatList = ({ setUserSelected }) => {
                 <Avatar
                   w="40px"
                   h="40px"
-                  src={convo.otherParticipant.profilePic}
-                  name={convo.otherParticipant.username}
+                  src={convo?.otherParticipant?.profilePic}
+                  name={convo?.otherParticipant?.username}
                 />
                 <Box>
                   <Text fontWeight="bold">
-                    {convo.otherParticipant.username}
+                    {convo?.otherParticipant?.username}
                   </Text>
                   <Text fontSize="sm" color="gray.500" noOfLines={1}>
-                    {convo.lastMessage?.text.substring(0, 20)}
+                    {convo?.lastMessage?.text.substring(0, 20)}
                   </Text>
                 </Box>
               </Flex>

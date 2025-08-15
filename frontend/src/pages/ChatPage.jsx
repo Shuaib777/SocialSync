@@ -6,6 +6,8 @@ import MessageContainer from "../components/MessageContainer";
 
 const ChatPage = () => {
   const [userSelected, setUserSelected] = useState(null);
+  const [conversationSelected, setConversationSelected] = useState(null);
+  const [conversations, setConversations] = useState([]);
 
   return (
     <Box
@@ -18,8 +20,17 @@ const ChatPage = () => {
       //   borderColor="gray.700"
     >
       <Flex direction={{ base: "column", md: "row" }} h={"100%"}>
-        <ChatList setUserSelected={setUserSelected} />
-        <MessageContainer userSelected={userSelected} />
+        <ChatList
+          setUserSelected={setUserSelected}
+          setConversationSelected={setConversationSelected}
+          conversations={conversations}
+          setConversations={setConversations}
+        />
+        <MessageContainer
+          userSelected={userSelected}
+          conversationSelected={conversationSelected}
+          setConversations={setConversations}
+        />
       </Flex>
     </Box>
   );
