@@ -34,6 +34,7 @@ const MessageContainer = ({
   const firstLoad = useRef(); // when first load the scroll should be auto else smooth
   const { socket } = useSocket();
   const user = useRecoilValue(userAtom);
+  const [userSelectedStatus, setUserSelectedStatus] = useState(false);
 
   useEffect(() => {
     setMessages([]);
@@ -62,7 +63,24 @@ const MessageContainer = ({
   }, [messages]);
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !userSelected?._id) return;
+
+    // Ask server if this user is online
+    socket.emit("isUserOnline", userSelected._id);
+
+    const statusHandler = ({ _id, isOnline }) => {
+      if (_id === userSelected._id) {
+        setUserSelectedStatus(isOnline);
+      }
+    };
+
+    const onlineHandler = ({ _id }) => {
+      if (_id === userSelected._id) setUserSelectedStatus(true);
+    };
+
+    const offlineHandler = ({ _id }) => {
+      if (_id === userSelected._id) setUserSelectedStatus(false);
+    };
 
     const handleNewMessage = (newMessage) => {
       if (
@@ -92,9 +110,15 @@ const MessageContainer = ({
       });
     };
 
+    socket.on("onlineUserStatus", statusHandler); // this is to check if that user is online
+    socket.on("userOnline", onlineHandler); // this triggers when the user comes online
+    socket.on("userOffline", offlineHandler); // this triggers when user goes offline
     socket.on("newMessage", handleNewMessage);
 
     return () => {
+      socket.off("onlineUserStatus", statusHandler);
+      socket.off("userOnline", onlineHandler);
+      socket.off("userOffline", offlineHandler);
       socket.off("newMessage", handleNewMessage);
     };
   }, [socket, userSelected?._id, conversationSelected?._id]);
@@ -151,7 +175,7 @@ const MessageContainer = ({
               <Box>
                 <Text fontWeight="bold">{userSelected.username}</Text>
                 <Text fontSize="sm" color="gray.500">
-                  Active
+                  {userSelectedStatus ? "Active" : "Inactive"}
                 </Text>
               </Box>
             </Flex>

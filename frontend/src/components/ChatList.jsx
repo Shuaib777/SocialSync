@@ -11,6 +11,7 @@ import {
 } from "@chakra-ui/react";
 import React, { useState, useEffect, useRef } from "react";
 import useApi from "../hooks/useApi";
+import { useSocket } from "../context/SocketsContext";
 
 const ChatList = ({
   setUserSelected,
@@ -22,6 +23,7 @@ const ChatList = ({
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const request = useApi();
+  const { socket } = useSocket();
 
   // Refs for debounce & stale prevention
   const timeoutRef = useRef(null);

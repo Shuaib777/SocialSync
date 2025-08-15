@@ -15,20 +15,27 @@ export const io = new Server(server, {
 export const onlineUsers = new Map();
 
 io.on("connection", (socket) => {
-  //   console.log("Socket connected:", socket.id);
-
   socket.on("register", (userId) => {
     onlineUsers.set(userId, socket.id);
-    // console.log("Registered:", userId);
+    // Notify others that this user is now online
+    socket.broadcast.emit("userOnline", { _id: userId });
+  });
+
+  socket.on("isUserOnline", (userId) => {
+    socket.emit("onlineUserStatus", {
+      _id: userId,
+      isOnline: onlineUsers.has(userId),
+    });
   });
 
   socket.on("disconnect", () => {
     for (let [uid, sid] of onlineUsers) {
       if (sid === socket.id) {
         onlineUsers.delete(uid);
+        // Notify others that this user is now offline
+        socket.broadcast.emit("userOffline", { _id: uid });
         break;
       }
     }
-    // console.log("Socket disconnected:", socket.id);
   });
 });
