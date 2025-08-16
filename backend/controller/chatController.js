@@ -32,13 +32,31 @@ export const createMessage = async (req, res) => {
           sender: senderId,
           createdAt: new Date(),
         },
+        // Initialize unread counts for both participants
+        unreadCounts: [
+          { user: senderId, count: 0 },
+          { user: recipientId, count: 1 },
+        ],
       });
+    } else {
+      // Update unread count for recipient
+      const recipientUnread = conversation.unreadCounts.find(
+        (uc) => uc.user.toString() === recipientId.toString()
+      );
+      if (recipientUnread) {
+        recipientUnread.count += 1;
+      } else {
+        conversation.unreadCounts.push({ user: recipientId, count: 1 });
+      }
     }
 
     let newMessage = await Message.create({
       conversationId: conversation._id,
       sender: senderId,
       text,
+      // Mark as seen by sender immediately
+      seenBy: [{ user: senderId, seenAt: new Date() }],
+      isRead: false,
     });
 
     newMessage = await newMessage.populate({
@@ -123,11 +141,19 @@ export const getConversations = async (req, res) => {
         const otherParticipant = convo.participants.find(
           (user) => user._id.toString() !== currentUserId.toString()
         );
+
+        // Get unread count for current user
+        const userUnreadCount =
+          convo.unreadCounts?.find(
+            (uc) => uc.user.toString() === currentUserId.toString()
+          )?.count || 0;
+
         return {
           _id: convo._id,
           otherParticipant,
           lastMessage: convo.lastMessage,
           updatedAt: convo.updatedAt,
+          unreadCount: userUnreadCount,
         };
       });
     } else {
@@ -162,18 +188,26 @@ export const getConversations = async (req, res) => {
       // Merge matched users with conversations one
       results = matchedUsers.map((user) => {
         const convo = convoMap.get(user._id.toString());
+
+        const userUnreadCount =
+          convo?.unreadCounts?.find(
+            (uc) => uc.user.toString() === currentUserId.toString()
+          )?.count || 0;
+
         return convo
           ? {
               _id: convo._id,
               otherParticipant: user,
               lastMessage: convo.lastMessage,
               updatedAt: convo.updatedAt,
+              unreadCount: userUnreadCount,
             }
           : {
               _id: null,
               otherParticipant: user,
               lastMessage: null,
               updatedAt: null,
+              unreadCount: 0,
             };
       });
 
@@ -193,6 +227,60 @@ export const getConversations = async (req, res) => {
     return res.status(200).json(results);
   } catch (error) {
     console.error("Error in getConversations:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const markMessagesAsSeen = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const currentUserId = req.user._id;
+
+    // Find all unread messages in this conversation that are not sent by current user
+    const messages = await Message.find({
+      conversationId,
+      sender: { $ne: currentUserId },
+      "seenBy.user": { $ne: currentUserId },
+    });
+
+    const ids = [];
+    for (const message of messages) {
+      message.seenBy.push({ user: currentUserId, seenAt: new Date() });
+      ids.push(message._id);
+      await message.save();
+    }
+
+    await Conversation.updateOne(
+      {
+        _id: conversationId,
+        "unreadCounts.user": currentUserId,
+      },
+      {
+        $set: { "unreadCounts.$.count": 0 },
+      }
+    );
+
+    // emit seen status
+    const conversation = await Conversation.findById(conversationId);
+    const otherParticipants = conversation.participants.filter(
+      (p) => p.toString() !== currentUserId.toString()
+    );
+
+    // for now there will be only one otherparticipant
+    otherParticipants.forEach((participantId) => {
+      const socketId = onlineUsers.get(participantId.toString());
+      if (socketId) {
+        io.to(socketId).emit("messagesSeen", {
+          conversationId,
+          seenBy: currentUserId,
+          messageIds: ids,
+        });
+      }
+    });
+
+    return res.status(200).json({ message: "Messages marked as seen" });
+  } catch (error) {
+    console.error("Error in markMessagesAsSeen:", error);
     return res.status(500).json({ error: error.message });
   }
 };

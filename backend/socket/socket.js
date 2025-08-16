@@ -28,6 +28,20 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on(
+    "messagesSeenServer",
+    ({ conversationId, senderId, seenBy, messageIds }) => {
+      const senderSocketId = onlineUsers.get(senderId);
+      if (senderSocketId) {
+        io.to(senderSocketId).emit("messagesSeen", {
+          conversationId,
+          seenBy,
+          messageIds: messageIds,
+        });
+      }
+    }
+  );
+
   socket.on("disconnect", () => {
     for (let [uid, sid] of onlineUsers) {
       if (sid === socket.id) {

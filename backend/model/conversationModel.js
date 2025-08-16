@@ -8,6 +8,19 @@ const conversationSchema = new mongoose.Schema(
       sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
       createdAt: Date,
     },
+    unreadCounts: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        count: {
+          type: Number,
+          default: 0,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

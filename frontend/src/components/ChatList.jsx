@@ -8,6 +8,7 @@ import {
   SkeletonCircle,
   useColorMode,
   Avatar,
+  Badge,
 } from "@chakra-ui/react";
 import React, { useState, useEffect, useRef } from "react";
 import useApi from "../hooks/useApi";
@@ -105,7 +106,7 @@ const ChatList = ({
             ))
           : conversations.map((convo, i) => (
               <Flex
-                key={convo._id || `new-${i}`}
+                key={convo?._id || `new-${i}`}
                 p={3}
                 align="center"
                 gap={3}
@@ -114,6 +115,7 @@ const ChatList = ({
                   cursor: "pointer",
                 }}
                 onClick={() => handleChat(convo)}
+                position="relative"
               >
                 <Avatar
                   w="40px"
@@ -121,7 +123,7 @@ const ChatList = ({
                   src={convo?.otherParticipant?.profilePic}
                   name={convo?.otherParticipant?.username}
                 />
-                <Box>
+                <Box flex="1">
                   <Text fontWeight="bold">
                     {convo?.otherParticipant?.username}
                   </Text>
@@ -129,6 +131,22 @@ const ChatList = ({
                     {convo?.lastMessage?.text.substring(0, 20)}
                   </Text>
                 </Box>
+                {/* Unread count badge */}
+                {convo?.unreadCount > 0 && (
+                  <Badge
+                    colorScheme="blue"
+                    variant="solid"
+                    borderRadius="full"
+                    minW="20px"
+                    h="20px"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    fontSize="xs"
+                  >
+                    {convo.unreadCount > 99 ? "99+" : convo.unreadCount}
+                  </Badge>
+                )}
               </Flex>
             ))}
       </VStack>

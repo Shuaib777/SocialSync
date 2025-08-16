@@ -35,6 +35,7 @@ const MessageContainer = ({
   const { socket } = useSocket();
   const user = useRecoilValue(userAtom);
   const [userSelectedStatus, setUserSelectedStatus] = useState(false);
+  const [pendingSeenEvents, setPendingSeenEvents] = useState([]);
 
   useEffect(() => {
     setMessages([]);
@@ -50,6 +51,33 @@ const MessageContainer = ({
     };
     getMessages();
   }, [userSelected]);
+
+  // Mark messages as seen when conversation opens
+  useEffect(() => {
+    const markAsSeen = async () => {
+      if (!conversationSelected?._id) return;
+
+      try {
+        await request(
+          `/chat/markMessagesAsSeen/${conversationSelected._id}`,
+          "POST"
+        );
+
+        // Update local conversations to reset unread count
+        setConversations((prev) =>
+          prev.map((convo) =>
+            convo._id === conversationSelected._id
+              ? { ...convo, unreadCount: 0 }
+              : convo
+          )
+        );
+      } catch (error) {
+        console.error("Error marking messages as seen:", error);
+      }
+    };
+
+    markAsSeen();
+  }, [conversationSelected?._id]);
 
   useEffect(() => {
     if (!messagesContainerRef.current) return;
@@ -88,17 +116,39 @@ const MessageContainer = ({
         user?._id === userSelected._id
       ) {
         setMessages((prev) => [...prev, newMessage]);
+
+        // If I'm the receiver and have this convo open → mark as seen immediately
+        if (newMessage.sender._id !== user?._id) {
+          socket.emit("messagesSeenServer", {
+            conversationId: newMessage.conversationId,
+            senderId: newMessage.sender._id,
+            seenBy: user._id,
+            messageIds: [newMessage._id],
+          });
+        }
       }
 
       setConversations((prev) => {
-        const updated = prev.map((convo) =>
-          convo._id === newMessage.conversationId
-            ? {
-                ...convo,
-                lastMessage: { ...convo.lastMessage, text: newMessage.text },
-              }
-            : convo
-        );
+        const updated = prev.map((convo) => {
+          if (convo._id === newMessage.conversationId) {
+            // If this is the currently selected conversation, don't increment unread count
+            const isCurrentConversation =
+              convo._id === conversationSelected?._id;
+            const currentUnreadCount = isCurrentConversation
+              ? 0
+              : convo.unreadCount || 0;
+
+            return {
+              ...convo,
+              lastMessage: { ...convo.lastMessage, text: newMessage.text },
+              unreadCount:
+                newMessage.sender._id === user?._id
+                  ? 0
+                  : currentUnreadCount + (isCurrentConversation ? 0 : 1),
+            };
+          }
+          return convo;
+        });
 
         const convoToMove = updated.find(
           (c) => c._id === newMessage.conversationId
@@ -110,18 +160,95 @@ const MessageContainer = ({
       });
     };
 
+    // Handle messages seen by other user
+    const handleMessagesSeen = ({ conversationId, seenBy, messageIds }) => {
+      if (conversationId !== conversationSelected?._id) return;
+
+      let wasMessageFound = false;
+
+      // update the message directly
+      setMessages((prevMessages) => {
+        const updatedMessages = prevMessages.map((msg) => {
+          if (messageIds.includes(msg._id)) {
+            wasMessageFound = true; // Mark that we found it
+            const seenByArray = msg.seenBy || [];
+            if (seenByArray?.some((seen) => seen.user === seenBy)) return msg; // Already seen
+            return {
+              ...msg,
+              seenBy: [...seenByArray, { user: seenBy, seenAt: new Date() }],
+            };
+          }
+          return msg;
+        });
+
+        return updatedMessages;
+      });
+
+      // If we couldn't find the message, add the event to our collection
+      if (!wasMessageFound) {
+        setPendingSeenEvents((prevEvents) => [
+          ...prevEvents,
+          { messageId: messageIds?.[0], seenBy },
+        ]);
+      }
+    };
+
     socket.on("onlineUserStatus", statusHandler); // this is to check if that user is online
     socket.on("userOnline", onlineHandler); // this triggers when the user comes online
     socket.on("userOffline", offlineHandler); // this triggers when user goes offline
     socket.on("newMessage", handleNewMessage);
+    socket.on("messagesSeen", handleMessagesSeen); // handler for seen messages
 
     return () => {
       socket.off("onlineUserStatus", statusHandler);
       socket.off("userOnline", onlineHandler);
       socket.off("userOffline", offlineHandler);
       socket.off("newMessage", handleNewMessage);
+      socket.off("messagesSeen", handleMessagesSeen);
     };
   }, [socket, userSelected?._id, conversationSelected?._id]);
+
+  // src/components/MessageContainer.jsx -> Add this new useEffect hook anywhere in your component body
+
+  useEffect(() => {
+    // Do nothing if our collection is empty
+    if (pendingSeenEvents.length === 0) return;
+
+    let stillPendingEvents = [...pendingSeenEvents];
+    let wasStateUpdated = false;
+
+    const updatedMessages = messages.map((msg) => {
+      // Find a pending event that matches this message
+      const eventForThisMsg = stillPendingEvents.find(
+        (event) => event.messageId === msg._id
+      );
+
+      if (eventForThisMsg) {
+        wasStateUpdated = true;
+        // Remove the event from our pending list since we're about to process it
+        stillPendingEvents = stillPendingEvents.filter(
+          (event) => event.messageId !== msg._id
+        );
+
+        // "Plug in" the seen status
+        const seenByArray = msg.seenBy || [];
+        return {
+          ...msg,
+          seenBy: [
+            ...seenByArray,
+            { user: eventForThisMsg.seenBy, seenAt: new Date() },
+          ],
+        };
+      }
+      return msg;
+    });
+
+    // If we successfully plugged in any seen statuses, update the state
+    if (wasStateUpdated) {
+      setMessages(updatedMessages);
+      setPendingSeenEvents(stillPendingEvents); // Update the collection
+    }
+  }, [messages, pendingSeenEvents]); // This logic runs whenever messages or pending events change
 
   const handleText = async () => {
     if (!userSelected) return;
@@ -137,7 +264,11 @@ const MessageContainer = ({
     setConversations((prev) => {
       const updated = prev.map((convo) =>
         convo._id === conversationSelected._id
-          ? { ...convo, lastMessage: { ...convo.lastMessage, text: data.text } }
+          ? {
+              ...convo,
+              lastMessage: { ...convo.lastMessage, text: data.text },
+              unreadCount: 0, // Reset unread count since user is sending message
+            }
           : convo
       );
 
