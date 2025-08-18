@@ -15,6 +15,7 @@ import {
   ModalOverlay,
   Text,
   Textarea,
+  useBreakpointValue,
   useDisclosure,
 } from "@chakra-ui/react";
 import { FaRegImage } from "react-icons/fa6";
@@ -37,6 +38,13 @@ const CreatePost = () => {
   const [isLoading, setIsLoading] = useState(false);
   const setPosts = useSetRecoilState(postsAtom);
 
+  // Responsive button sizes
+  const btnSize = useBreakpointValue({ base: "lg", md: "md" });
+  const btnBottom = useBreakpointValue({ base: 6, md: 10 });
+  const btnRight = useBreakpointValue({ base: 6, md: 10 });
+  const iconOnly = useBreakpointValue({ base: true, md: false });
+  const iconSize = useBreakpointValue({ base: 5, md: 4 });
+
   const handleTextChange = (e) => {
     const newValue = e.target.value;
     setTextValue(newValue.slice(0, CHARACTERS_LIMIT));
@@ -52,11 +60,7 @@ const CreatePost = () => {
       if (imageRef.current?.files[0]) {
         const compressedFile = await imageCompression(
           imageRef.current.files[0],
-          {
-            maxSizeMB: 0.3,
-            maxWidthOrHeight: 800,
-            useWebWorker: true,
-          }
+          { maxSizeMB: 0.3, maxWidthOrHeight: 800, useWebWorker: true }
         );
 
         formData.append("postImage", compressedFile);
@@ -78,51 +82,80 @@ const CreatePost = () => {
 
   return (
     <>
+      {/* Floating Post Button */}
       <Button
-        position={"fixed"}
-        bottom={10}
-        right={10}
-        leftIcon={<AddIcon />}
+        position="fixed"
+        bottom={btnBottom}
+        right={btnRight}
+        size={btnSize}
+        leftIcon={!iconOnly && <AddIcon w={4} h={4} />}
         onClick={onOpen}
+        borderRadius="full"
+        zIndex={1000}
+        p={iconOnly ? 4 : 3}
       >
-        Post
+        {!iconOnly && "Post"}
+        {iconOnly && <AddIcon w={iconSize} h={iconSize} />}
       </Button>
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Create Post</ModalHeader>
-          <ModalCloseButton />
+
+      {/* Modal */}
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        size="lg"
+        isCentered
+        motionPreset="scale"
+      >
+        <ModalOverlay bg="blackAlpha.800" />
+        <ModalContent bg="gray.800" borderRadius="xl" p={[4, 6]} mx={2}>
+          <ModalHeader color="white" fontSize={["lg", "2xl"]}>
+            Create Post
+          </ModalHeader>
+          <ModalCloseButton color="white" />
           <ModalBody mb={5}>
             <FormControl>
               <Textarea
                 placeholder="Content goes here ..."
                 onChange={handleTextChange}
                 value={textValue}
+                bg="gray.700"
+                color="white"
+                borderRadius="md"
+                resize="none"
               />
               <Text
-                fontSize={"xs"}
-                fontWeight={"bold"}
-                color={"gray"}
+                fontSize="xs"
+                fontWeight="bold"
+                color="gray.400"
                 mt={1}
-                textAlign={"right"}
+                textAlign="right"
               >
                 {textValue.length}/{CHARACTERS_LIMIT}
               </Text>
 
               <Input ref={imageRef} type="file" hidden onChange={handleImage} />
               <FaRegImage
-                style={{ cursor: "pointer" }}
+                style={{ cursor: "pointer", marginTop: "8px" }}
+                size={20}
                 onClick={() => imageRef.current.click()}
+                color="white"
               />
             </FormControl>
+
             {imgUrl && (
-              <Flex mt={5} position={"relative"} w={"full"}>
-                <Image src={imgUrl} />
+              <Flex mt={5} position="relative" w="full" justify="center">
+                <Image
+                  src={imgUrl}
+                  borderRadius="lg"
+                  maxH="300px"
+                  objectFit="cover"
+                  boxShadow="lg"
+                />
                 <CloseButton
-                  position={"absolute"}
+                  position="absolute"
                   top={2}
                   right={2}
-                  bg={"gray.dark"}
+                  bg="gray.600"
                   onClick={() => {
                     imageRef.current.value = "";
                     setImgUrl("");
@@ -137,6 +170,7 @@ const CreatePost = () => {
               colorScheme="blue"
               onClick={handleCreatePost}
               isLoading={isLoading}
+              borderRadius="md"
             >
               Post
             </Button>

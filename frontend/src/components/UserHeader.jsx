@@ -21,6 +21,7 @@ import useApi from "../hooks/useApi";
 import userAtom from "../atoms/userAtom";
 import { useRecoilState } from "recoil";
 import { Link as RouterLink } from "react-router-dom";
+import LogoutButton from "./LogoutButton";
 
 const UserHeader = ({ profileUser, setProfileUser }) => {
   const showToast = useCustomToast();
@@ -121,9 +122,12 @@ const UserHeader = ({ profileUser, setProfileUser }) => {
       </Flex>
       <Text>{profileUser.bio}</Text>
       {currentUser?._id === profileUser._id ? (
-        <Link as={RouterLink} to="/update">
-          <Button>Update Profile</Button>
-        </Link>
+        <Flex gap={2}>
+          <Link as={RouterLink} to="/update">
+            <Button>Update Profile</Button>
+          </Link>
+          <LogoutButton />
+        </Flex>
       ) : (
         <Button onClick={handleFollowUnfollow} isLoading={isLoading}>
           {following ? "Unfollow" : "Follow"}

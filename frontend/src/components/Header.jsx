@@ -1,41 +1,123 @@
-import { Flex, Image, useColorMode } from "@chakra-ui/react";
+import React from "react";
+import {
+  Flex,
+  Box,
+  Image,
+  Avatar,
+  useColorMode,
+  IconButton,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  useDisclosure,
+  Center,
+  CloseButton,
+} from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import { useRecoilValue } from "recoil";
+import { IoHome, IoChatbubbleEllipsesOutline, IoSearch } from "react-icons/io5";
 import userAtom from "../atoms/userAtom";
-import React from "react";
-import { IoHome } from "react-icons/io5";
-import { CgProfile } from "react-icons/cg";
 import Search from "./Search";
-import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 
 const Header = () => {
   const { colorMode, toggleColorMode } = useColorMode();
   const user = useRecoilValue(userAtom);
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
-    <Flex justifyContent={"space-between"} alignItems={"center"} mt={6} mb={12}>
+    <Flex
+      alignItems="center"
+      justifyContent="space-between"
+      mt={[4, 6]}
+      mb={[8, 12]}
+      px={[4, 0]}
+      w="100%"
+      gap={4}
+    >
+      {/* Left icons */}
+      <Flex alignItems="center" gap={6}>
+        {user && (
+          <Link to={"/"}>
+            <IoHome size={24} />
+          </Link>
+        )}
+        {user && (
+          <Link to={"/chat"}>
+            <IoChatbubbleEllipsesOutline size={24} />
+          </Link>
+        )}
+      </Flex>
+
+      {/* Logo */}
+      <Box display={["inline-block", "block"]}>
+        <Image
+          cursor="pointer"
+          alt="logo"
+          src={colorMode === "dark" ? "/light-logo.svg" : "/dark-logo.svg"}
+          onClick={toggleColorMode}
+          w={6}
+        />
+      </Box>
+
+      {/* Right icons */}
+      <Flex alignItems="center" gap={4}>
+        {user && (
+          <IconButton
+            icon={<IoSearch />}
+            aria-label="Search"
+            onClick={onOpen}
+            rounded="full"
+            size="md"
+            variant="outline"
+            _hover={{ bg: "gray.700" }}
+          />
+        )}
+
+        {/* Profile avatar */}
+        {user && (
+          <Link to={`/${user?.username}`}>
+            <Avatar
+              size="sm"
+              name={user?.username}
+              src={user?.profilePic}
+              cursor="pointer"
+            />
+          </Link>
+        )}
+      </Flex>
+
+      {/* Search modal */}
       {user && (
-        <Link to={"/"}>
-          <IoHome size={24} />
-        </Link>
-      )}
-      {user && <Search />}
-      <Image
-        cursor={"pointer"}
-        alt={"logo"}
-        src={colorMode == "dark" ? "/light-logo.svg" : "/dark-logo.svg"}
-        onClick={toggleColorMode}
-        w={6}
-      />
-      {user && (
-        <Link to={"/chat"}>
-          <IoChatbubbleEllipsesOutline size={24} />
-        </Link>
-      )}
-      {user && (
-        <Link to={`/${user.username}`}>
-          <CgProfile size={24} />
-        </Link>
+        <Modal isOpen={isOpen} onClose={onClose} size="full" isCentered>
+          <ModalOverlay bg="blackAlpha.800" />
+          <ModalContent
+            bg="gray.900"
+            borderRadius="md"
+            maxW={["100%", "620px"]}
+            mx="auto"
+          >
+            <ModalHeader color="white" pb={2}>
+              <Flex justify="space-between" align="center">
+                Search Users
+                <CloseButton
+                  aria-label="Close"
+                  onClick={onClose}
+                  variant="ghost"
+                  color="white"
+                />
+              </Flex>
+            </ModalHeader>
+            <ModalBody>
+              <Center>
+                <Box w="100%" maxW="620px">
+                  <Search onClose={onClose} />
+                </Box>
+              </Center>
+            </ModalBody>
+          </ModalContent>
+        </Modal>
       )}
     </Flex>
   );

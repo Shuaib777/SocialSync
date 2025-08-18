@@ -20,17 +20,7 @@ const LogoutButton = () => {
     }
   };
 
-  return (
-    <Button
-      position={"fixed"}
-      top={"30px"}
-      right={"30px"}
-      size={"sm"}
-      onClick={handleLogout}
-    >
-      Logout
-    </Button>
-  );
+  return <Button onClick={handleLogout}>Logout</Button>;
 };
 
 export default LogoutButton;

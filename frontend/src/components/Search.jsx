@@ -13,7 +13,7 @@ import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useApi from "../hooks/useApi";
 
-const Search = () => {
+const Search = ({ onClose }) => {
   const [query, setQuery] = useState("");
   const [originalQuery, setOriginalQuery] = useState("");
   const [searchedUsers, setSearchedUsers] = useState([]);
@@ -83,6 +83,7 @@ const Search = () => {
     setIsFocused(false);
     setSearchedUsers([]);
     setSelectedIndex(-1);
+    onClose();
     inputRef.current?.blur();
   };
 
