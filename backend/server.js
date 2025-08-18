@@ -12,16 +12,9 @@ import { app, server } from "./socket/Socket.js";
 dotenv.config();
 connectDB();
 
-// app.use(
-//   cors({
-//     origin: "https://socialsync-ep5b.onrender.com",
-//     credentials: true,
-//   })
-// );
-
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL,
     credentials: true,
   })
 );
@@ -43,5 +36,5 @@ app.use("/api/posts/", postRouter);
 app.use("/api/chat", chatRouter);
 
 server.listen(PORT, () => {
-  console.log(`server running at localhost ${PORT}`);
+  console.log(`server running at ${PORT}`);
 });

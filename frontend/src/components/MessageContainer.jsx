@@ -185,6 +185,14 @@ const MessageContainer = ({
       });
 
       // If we couldn't find the message, add the event to our collection
+      // this runs when there might be conflict
+      // this can happen when the sender sends the message and the receiver
+      // whose current selected user is that sender give the notification
+      // to the server that it has seen the message then server immediately
+      // sends this notification to the sender client again but the problem
+      // here is that new message is not even mounted on the dom so
+      // that message will never be there so i have to collect this messages
+      // and update after the messages have been mounter
       if (!wasMessageFound) {
         setPendingSeenEvents((prevEvents) => [
           ...prevEvents,

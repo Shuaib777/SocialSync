@@ -150,9 +150,11 @@ export const updatePost = async (req, res) => {
 
     let update = {};
 
-    if (text) update.text = text;
     if (img) update.img = img;
-    update.embedding = getEmbedding(text);
+    if (text) {
+      update.text = text;
+      update.embedding = await getEmbedding(text);
+    }
 
     const updatedPost = await Post.findByIdAndUpdate(postId, update, {
       new: true,
@@ -191,7 +193,7 @@ export const likeUnlikePost = async (req, res) => {
     }
 
     return res.status(200).json({
-      message: `Post ${isLiked ? "unliked" : "liked"} successfully`,
+      message: `Post ${isLiked ? "liked" : "unliked"} successfully`,
       likesLength,
       isLiked,
     });
