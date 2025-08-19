@@ -33,7 +33,7 @@ const Search = ({ onClose }) => {
 
   const handleQuery = (e) => {
     if (e.key === "Enter") {
-      if (selectedIndex >= 0 && searchedUsers[selectedIndex]) {
+      if (selectedIndex >= 0 && searchedUsers?.[selectedIndex]) {
         handleUserSelect(searchedUsers[selectedIndex]);
       } else if (originalQuery.trim()) {
         navigate(`/${originalQuery.trim()}`);
@@ -161,7 +161,7 @@ const Search = ({ onClose }) => {
           onBlur={() => {
             setTimeout(() => {
               setIsFocused(false);
-              if (inputRef.current.val) setQuery(originalQuery);
+              if (inputRef.current?.value) setQuery(originalQuery);
               setSelectedIndex(-1);
             }, 150);
           }}
@@ -176,22 +176,25 @@ const Search = ({ onClose }) => {
           w={inputWidth}
           position="absolute"
           top="50px"
-          bg="gray.800"
+          bg="transparent"
           padding="10px 10px"
           zIndex={100}
-          boxShadow="md"
-          borderRadius="md"
+          border={"1px"}
+          borderLeft={"0"}
+          borderTop={"0"}
+          borderBottomRightRadius={"md"}
+          borderColor={"gray.700"}
         >
           {searchedUsers.map((user, i) => (
             <Flex
-              key={user._id || i}
+              key={user?._id || i}
               gap={4}
               align="center"
               py={2}
               px={2}
               cursor="pointer"
-              bg={selectedIndex === i ? "gray.600" : "transparent"}
-              _active={{ bg: selectedIndex === i ? "gray.600" : "gray.700" }}
+              bg={selectedIndex === i ? "gray.800" : "transparent"}
+              _active={{ bg: selectedIndex === i ? "gray.700" : "gray.800" }}
               onMouseEnter={() => {
                 setSelectedIndex(i);
                 setQuery(user.username);
@@ -204,8 +207,8 @@ const Search = ({ onClose }) => {
               }}
               onMouseDown={() => handleUserSelect(user)}
             >
-              <Avatar size="sm" src={user.profilePic} name={user.username} />
-              <Text color="white">{user.username}</Text>
+              <Avatar size="sm" src={user?.profilePic} name={user?.username} />
+              <Text color="white">{user?.username}</Text>
             </Flex>
           ))}
         </Stack>

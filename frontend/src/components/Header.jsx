@@ -62,7 +62,7 @@ const Header = () => {
       </Box>
 
       {/* Right icons */}
-      <Flex alignItems="center" gap={4}>
+      <Flex alignItems="center" gap={5}>
         {user && (
           <IconButton
             icon={<IoSearch />}
@@ -90,12 +90,13 @@ const Header = () => {
 
       {/* Search modal */}
       {user && (
-        <Modal isOpen={isOpen} onClose={onClose} size="full" isCentered>
+        <Modal isOpen={isOpen} onClose={onClose} isCentered>
           <ModalOverlay bg="blackAlpha.800" />
           <ModalContent
             bg="gray.900"
             borderRadius="md"
-            maxW={["100%", "620px"]}
+            maxW={["100%", "520px"]}
+            h={["100vh", "70vh"]}
             mx="auto"
           >
             <ModalHeader color="white" pb={2}>

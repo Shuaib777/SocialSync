@@ -19,7 +19,7 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { FaRegImage } from "react-icons/fa6";
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import usePreviewImage from "../hooks/usePreviewImage";
 import useApi from "../hooks/useApi";
 import useCustomToast from "../hooks/useCustomToast";
@@ -32,13 +32,12 @@ const CreatePost = () => {
   const { handleImage, imgUrl, setImgUrl } = usePreviewImage();
   const [textValue, setTextValue] = useState("");
   const imageRef = useRef();
-  const CHARACTERS_LIMIT = 50;
+  const CHARACTERS_LIMIT = 150;
   const request = useApi();
   const showToast = useCustomToast();
   const [isLoading, setIsLoading] = useState(false);
   const setPosts = useSetRecoilState(postsAtom);
 
-  // Responsive button sizes
   const btnSize = useBreakpointValue({ base: "lg", md: "md" });
   const btnBottom = useBreakpointValue({ base: 6, md: 10 });
   const btnRight = useBreakpointValue({ base: 6, md: 10 });
@@ -92,7 +91,7 @@ const CreatePost = () => {
         onClick={onOpen}
         borderRadius="full"
         zIndex={1000}
-        p={iconOnly ? 4 : 3}
+        p={iconOnly ? 4 : 5}
       >
         {!iconOnly && "Post"}
         {iconOnly && <AddIcon w={iconSize} h={iconSize} />}
@@ -118,10 +117,11 @@ const CreatePost = () => {
                 placeholder="Content goes here ..."
                 onChange={handleTextChange}
                 value={textValue}
-                bg="gray.700"
+                bg="gray.800"
                 color="white"
                 borderRadius="md"
                 resize="none"
+                borderColor={"gray.500"}
               />
               <Text
                 fontSize="xs"
