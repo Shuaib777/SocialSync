@@ -14,7 +14,7 @@ export const SocketContextProvider = ({ children }) => {
   useEffect(() => {
     if (!user?._id) return;
 
-    const newSocket = io(API_URL);
+    const newSocket = io(API_URL || "http://localhost:5000");
     setSocket(newSocket);
 
     newSocket.emit("register", user._id);
