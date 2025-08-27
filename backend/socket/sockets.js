@@ -5,9 +5,11 @@ import { Server } from "socket.io";
 export const app = express();
 export const server = http.createServer(app);
 
+const allowedOrigins = ["http://localhost:5173", process.env.CLIENT_URL];
+
 export const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL,
+    origin: allowedOrigins,
     credentials: true,
   },
 });
