@@ -23,7 +23,7 @@ const useApi = () => {
         headers["Content-Type"] = "application/json";
       }
 
-      const res = await fetch(`${API_URL}/api/${endpoint}`, {
+      const res = await fetch(`${API_URL}/api${endpoint}`, {
         method,
         credentials: isAuth ? "include" : "same-origin",
         headers,
