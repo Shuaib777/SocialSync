@@ -40,7 +40,13 @@ const UserPost = ({ post, isDelete }) => {
   const deletePost = async () => {
     if (deleting) return;
     setDeleting(true);
-    const data = request(`/posts/deletePost/${post._id}`, "DELETE");
+    const data = request(
+      `/posts/deletePost/${post._id}`,
+      "DELETE",
+      null,
+      false,
+      true
+    );
     setDeleting(false);
     if (!data) return;
 

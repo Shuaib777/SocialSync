@@ -42,7 +42,13 @@ const MessageContainer = ({
     const getMessages = async () => {
       if (!userSelected) return;
       setMessagesLoading(true);
-      const data = await request(`/chat/getMessages/${userSelected._id}`);
+      const data = await request(
+        `/chat/getMessages/${userSelected._id}`,
+        "GET",
+        null,
+        false,
+        true
+      );
       setMessagesLoading(false);
 
       if (!data) return;
@@ -60,7 +66,10 @@ const MessageContainer = ({
       try {
         await request(
           `/chat/markMessagesAsSeen/${conversationSelected._id}`,
-          "POST"
+          "POST",
+          null,
+          false,
+          true
         );
 
         // Update local conversations to reset unread count
@@ -216,8 +225,6 @@ const MessageContainer = ({
     };
   }, [socket, userSelected?._id, conversationSelected?._id]);
 
-  // src/components/MessageContainer.jsx -> Add this new useEffect hook anywhere in your component body
-
   useEffect(() => {
     // Do nothing if our collection is empty
     if (pendingSeenEvents.length === 0) return;
@@ -261,10 +268,16 @@ const MessageContainer = ({
   const handleText = async () => {
     if (!userSelected) return;
 
-    const data = await request("/chat/createMessage", "POST", {
-      text,
-      recipientId: userSelected._id,
-    });
+    const data = await request(
+      "/chat/createMessage",
+      "POST",
+      {
+        text,
+        recipientId: userSelected._id,
+      },
+      false,
+      true
+    );
     if (!data) return;
 
     setMessages((prev) => [...prev, data]);

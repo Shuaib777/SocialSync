@@ -52,14 +52,7 @@ export default function ProfilePage() {
       formData.append("profilePic", compressedFile);
     }
 
-    const data = await request(
-      "/users/update",
-      "PATCH",
-      formData,
-      true,
-      false,
-      "Profile Updated Successfully"
-    );
+    const data = await request("/users/update", "PATCH", formData, true, true);
     setLoading(false);
 
     if (!data) return;

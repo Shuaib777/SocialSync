@@ -51,8 +51,11 @@ const UserHeader = ({ profileUser, setProfileUser }) => {
       }
       setIsLoading(true);
       const data = await apiRequest(
-        `users/followUnfollow/${profileUser._id}`,
-        "POST"
+        `/users/followUnfollow/${profileUser._id}`,
+        "POST",
+        null,
+        false,
+        true
       );
 
       if (!data) return;

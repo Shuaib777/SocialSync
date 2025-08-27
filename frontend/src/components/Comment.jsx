@@ -20,8 +20,12 @@ const Comment = ({ reply, postId }) => {
     setLoading(true);
     const data = await request(
       `/posts/likeUnlikeReply/${postId}/${reply._id}`,
-      "PATCH"
+      "PATCH",
+      null,
+      false,
+      true
     );
+
     if (!data) return;
     setLoading(false);
     setLikesLength(data.likesLength);

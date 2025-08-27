@@ -20,7 +20,13 @@ const PostActions = ({ post, setSinglePost }) => {
 
   const handleLikeUnlike = async () => {
     setLiking(true);
-    const data = await request(`/posts/likeUnlike/${post._id}`, "PATCH");
+    const data = await request(
+      `/posts/likeUnlike/${post._id}`,
+      "PATCH",
+      null,
+      false,
+      true
+    );
     if (!data) return;
     setLiking(false);
     setLikesLength(data.likesLength);
@@ -29,9 +35,15 @@ const PostActions = ({ post, setSinglePost }) => {
 
   const handleReply = async (replyText) => {
     setReplying(true);
-    const data = await request(`/posts/reply/${post._id}`, "PATCH", {
-      text: replyText,
-    });
+    const data = await request(
+      `/posts/reply/${post._id}`,
+      "PATCH",
+      {
+        text: replyText,
+      },
+      false,
+      true
+    );
     setReplying(false);
     if (!data) return;
 

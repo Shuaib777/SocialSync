@@ -16,7 +16,6 @@ export const SocketContextProvider = ({ children }) => {
 
     const newSocket = io(API_URL || "http://localhost:5000", {
       withCredentials: true,
-      transports: ["websocket", "polling"],
     });
 
     setSocket(newSocket);

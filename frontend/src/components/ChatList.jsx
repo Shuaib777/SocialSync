@@ -52,7 +52,11 @@ const ChatList = ({
 
       try {
         const data = await request(
-          `/chat/getConversations?query=${trimmedQuery}`
+          `/chat/getConversations?query=${trimmedQuery}`,
+          "GET",
+          null,
+          false,
+          true
         );
         // Prevent stale overwrite
         if (currentRequestId === requestCounterRef.current) {
