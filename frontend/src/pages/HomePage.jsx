@@ -20,7 +20,7 @@ const HomePage = () => {
 
   useEffect(() => {
     const fetchPosts = async () => {
-      const data = await request("/posts/feeds");
+      const data = await request("/posts/feeds", "GET", null, false, true);
       if (data) setPosts(data);
       setLoading(false);
     };
@@ -29,7 +29,7 @@ const HomePage = () => {
 
   useEffect(() => {
     const fetchRecommendedPosts = async () => {
-      const data = await request("/posts/feeds", "GET", null, false, true);
+      const data = await request("/posts/recommend", "GET", null, false, true);
       if (data) setRecommendedPosts(data);
       setLoadingRecommended(false);
     };
