@@ -28,7 +28,7 @@ const Search = ({ onClose }) => {
 
   const inputWidth = useBreakpointValue({
     base: "100%",
-    md: isFocused ? "300px" : "200px",
+    md: isFocused ? "299px" : "200px",
   });
 
   const handleQuery = (e) => {
