@@ -1,7 +1,7 @@
 import Conversation from "../model/conversationModel.js";
 import User from "../model/userModel.js";
 import Message from "../model/messageModel.js";
-import { io, onlineUsers } from "../socket/Socket.js";
+import { io, onlineUsers } from "../socket/sockets.js";
 
 export const createMessage = async (req, res) => {
   try {

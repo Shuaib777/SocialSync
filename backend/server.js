@@ -7,7 +7,7 @@ import postRouter from "./routes/postRoutes.js";
 import cors from "cors";
 import { v2 as cloudinary } from "cloudinary";
 import chatRouter from "./routes/chatRoutes.js";
-import { app, server } from "./socket/socket.js";
+import { app, server } from "./socket/sockets.js";
 
 dotenv.config();
 connectDB();
