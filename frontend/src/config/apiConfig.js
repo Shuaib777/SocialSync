@@ -1,8 +1,6 @@
 const API_URL =
   process.env.NODE_ENV === "production"
-    ? "https://socialsync-backend.onrender.com"
+    ? import.meta.env.VITE_API_BASE_URL
     : "";
-
-// instead of url add vite url here later
 
 export default API_URL;
