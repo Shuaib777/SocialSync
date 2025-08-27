@@ -2,6 +2,7 @@ import { useState, useEffect, createContext, useContext } from "react";
 import { io } from "socket.io-client";
 import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
+import API_URL from "../config/apiConfig";
 
 const SocketContext = createContext();
 export const useSocket = () => useContext(SocketContext);
@@ -13,7 +14,7 @@ export const SocketContextProvider = ({ children }) => {
   useEffect(() => {
     if (!user?._id) return;
 
-    const newSocket = io("http://localhost:5000");
+    const newSocket = io(API_URL);
     setSocket(newSocket);
 
     newSocket.emit("register", user._id);
