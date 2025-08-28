@@ -52,9 +52,9 @@ const HomePage = () => {
       {!hasPost && <h1>Follow some users to see posts on your feed</h1>}
 
       {posts?.map((post) => {
-        if (user && post.postedBy._id === user._id) return null;
+        if (user && post?.postedBy?._id === user?._id) return null;
         if (!hasPost) setHasPost(true);
-        return <UserPost key={post._id} post={post} />;
+        return <UserPost key={post?._id || Math.random()} post={post} />;
       })}
 
       {loadingRecommended && (
@@ -63,13 +63,13 @@ const HomePage = () => {
         </Flex>
       )}
 
-      {!loadingRecommended && recommendedPosts.length > 0 && (
+      {!loadingRecommended && recommendedPosts?.length > 0 && (
         <div style={{ marginTop: "2rem" }}>
           <h2 style={{ fontWeight: "bold", marginBottom: "1rem" }}>
             Recommended Posts
           </h2>
-          {recommendedPosts.map((post) => (
-            <UserPost key={post._id} post={post} />
+          {recommendedPosts?.map((post) => (
+            <UserPost key={post?._id || Math.random()} post={post} />
           ))}
         </div>
       )}

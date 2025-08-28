@@ -65,7 +65,13 @@ const CreatePost = () => {
         formData.append("postImage", compressedFile);
       }
 
-      const data = await request("/posts/createPost", "POST", formData, true);
+      const data = await request(
+        "/posts/createPost",
+        "POST",
+        formData,
+        true,
+        true
+      );
       if (!data) return;
       setPosts((posts) => [data.post, ...posts]);
       showToast("Success", "Post created Successfully", "success");
