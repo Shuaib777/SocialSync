@@ -138,7 +138,7 @@ const MessageContainer = ({
     <Flex
       flex={{ base: "1", md: "60%" }}
       direction="column"
-      h="100%"
+      h="97%"
       borderLeft={{ base: "none", md: "1px solid" }}
       borderColor="gray.700"
     >
@@ -157,8 +157,9 @@ const MessageContainer = ({
                 <IconButton
                   aria-label="Back"
                   icon={<IoArrowBack />}
-                  size="sm"
+                  size="xs"
                   variant="ghost"
+                  mr={"-10px"}
                   onClick={() => setUserSelected(null)}
                 />
               )}
