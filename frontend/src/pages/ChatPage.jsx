@@ -23,7 +23,7 @@ const ChatPage = ({ setChatSelected }) => {
       left="50%"
       transform="translateX(-50%)"
       w={{ base: "100%", md: "750px" }}
-      h={{ base: "100vh", md: "550px" }}
+      h={{ base: "96vh", md: "550px" }}
       overflow="hidden"
     >
       <Flex h="100%">
