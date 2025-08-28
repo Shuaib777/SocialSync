@@ -59,7 +59,7 @@ const UserPost = ({ post, isDelete }) => {
       <Flex gap={3} mb={4} py={5}>
         <Flex flexDirection={"column"} alignItems={"center"}>
           <Avatar
-            size="md"
+            size={{ base: "sm", md: "md" }}
             name={user?.username}
             src={user?.profilePic}
             cursor={"pointer"}
@@ -75,7 +75,7 @@ const UserPost = ({ post, isDelete }) => {
             {post.replies[0] && (
               <Avatar
                 size="xs"
-                name="John doe"
+                name={post.replies[0].username}
                 src={post.replies[0].userProfilePic}
                 position={"absolute"}
                 top={"0px"}
@@ -86,7 +86,7 @@ const UserPost = ({ post, isDelete }) => {
             {post.replies[1] && (
               <Avatar
                 size="xs"
-                name="John doe"
+                name={post.replies[1].username}
                 src={post.replies[1].userProfilePic}
                 position={"absolute"}
                 bottom={"0px"}
@@ -97,7 +97,7 @@ const UserPost = ({ post, isDelete }) => {
             {post.replies[2] && (
               <Avatar
                 size="xs"
-                name="John doe"
+                name={post.replies[2].username}
                 src={post.replies[2].userProfilePic}
                 position={"absolute"}
                 bottom={"0px"}
@@ -134,7 +134,7 @@ const UserPost = ({ post, isDelete }) => {
                     <BsThreeDots size={24} />
                   </MenuButton>
                   <Portal>
-                    <MenuList bg={"gray.dark"}>
+                    <MenuList bg={"gray.900"}>
                       <MenuItem
                         bg={"gray.dark"}
                         _hover={{ bg: "gray.light" }}

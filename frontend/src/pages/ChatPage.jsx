@@ -1,36 +1,65 @@
-import React from "react";
-import { useState } from "react";
-import { Box, Flex } from "@chakra-ui/react";
+import React, { useEffect, useState } from "react";
+import { Box, Flex, useBreakpointValue } from "@chakra-ui/react";
 import ChatList from "../components/ChatList";
 import MessageContainer from "../components/MessageContainer";
 
-const ChatPage = () => {
+const ChatPage = ({ setChatSelected }) => {
   const [userSelected, setUserSelected] = useState(null);
   const [conversationSelected, setConversationSelected] = useState(null);
   const [conversations, setConversations] = useState([]);
+
+  // Detect if we are on mobile
+  const isMobile = useBreakpointValue({ base: true, md: false });
+  useEffect(() => {
+    if (isMobile) {
+      if (userSelected) setChatSelected(true);
+      else setChatSelected(false);
+    }
+  }, [userSelected]);
 
   return (
     <Box
       position="absolute"
       left="50%"
       transform="translateX(-50%)"
-      w="750px"
-      h={"550px"}
-      //   border="1px solid"
-      //   borderColor="gray.700"
+      w={{ base: "100%", md: "750px" }}
+      h={{ base: "100vh", md: "550px" }}
+      overflow="hidden"
     >
-      <Flex direction={{ base: "column", md: "row" }} h={"100%"}>
-        <ChatList
-          setUserSelected={setUserSelected}
-          setConversationSelected={setConversationSelected}
-          conversations={conversations}
-          setConversations={setConversations}
-        />
-        <MessageContainer
-          userSelected={userSelected}
-          conversationSelected={conversationSelected}
-          setConversations={setConversations}
-        />
+      <Flex h="100%">
+        {/* Small screen behavior */}
+        {isMobile ? (
+          userSelected ? (
+            <MessageContainer
+              userSelected={userSelected}
+              conversationSelected={conversationSelected}
+              setConversations={setConversations}
+              setUserSelected={setUserSelected}
+            />
+          ) : (
+            <ChatList
+              setUserSelected={setUserSelected}
+              setConversationSelected={setConversationSelected}
+              conversations={conversations}
+              setConversations={setConversations}
+            />
+          )
+        ) : (
+          // Medium+ screen behavior (always both side by side)
+          <>
+            <ChatList
+              setUserSelected={setUserSelected}
+              setConversationSelected={setConversationSelected}
+              conversations={conversations}
+              setConversations={setConversations}
+            />
+            <MessageContainer
+              userSelected={userSelected}
+              conversationSelected={conversationSelected}
+              setConversations={setConversations}
+            />
+          </>
+        )}
       </Flex>
     </Box>
   );

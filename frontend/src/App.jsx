@@ -11,13 +11,15 @@ import userAtom from "./atoms/userAtom";
 import ProfilePage from "./pages/ProfilePage";
 import CreatePost from "./components/CreatePost";
 import ChatPage from "./pages/ChatPage";
+import { useState } from "react";
 
 const App = () => {
   const user = useRecoilValue(userAtom);
+  const [chatSelected, setChatSelected] = useState(false);
 
   return (
     <Container position={"relative"} maxW="620px">
-      <Header />
+      {!chatSelected && <Header />}
       <Routes>
         <Route
           path="/"
@@ -39,12 +41,18 @@ const App = () => {
         />
         <Route
           path="/chat"
-          element={user ? <ChatPage /> : <Navigate to="/auth" />}
+          element={
+            user ? (
+              <ChatPage setChatSelected={setChatSelected} />
+            ) : (
+              <Navigate to="/auth" />
+            )
+          }
         />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
-      {user && <CreatePost></CreatePost>}
+      {user && !chatSelected && <CreatePost></CreatePost>}
     </Container>
   );
 };
